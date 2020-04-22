@@ -4,6 +4,7 @@ import numpy as np
 # Eerste infected persoon beinvloed wss de curve
 
 transmission_rate = 0.5
+recovery_rate = 0.1
 
 
 def main():
@@ -20,18 +21,28 @@ def main():
     for i in range(5):
         x = np.transpose(np.asmatrix(susceptible))
         # susceptible_susceptible = np.matmul(x, np.asmatrix(susceptible))
-        susceptible_infected = np.matmul(x, np.asmatrix(infected))
+        infected_new, susceptible = infect(contact_matrix, infected.copy(), susceptible, x)
+        recoveries = infected * recovery_rate
+        recovered += recoveries
+        infected_new -= recoveries
+        infected_new = np.maximum(infected_new, np.zeros(86))
 
-        contacts = np.multiply(contact_matrix, susceptible_infected)
-        contacts = np.asarray(contacts)
-        # print(contacts)
-
-        for column in contacts.transpose():
-            infected += column
-            susceptible -= column
-        susceptible = np.maximum(susceptible, np.zeros(86))
+        infected = infected_new
 
     print(infected.sum())
+    print(recovered.sum())
+
+
+def infect(contact_matrix, infected, susceptible, x):
+    susceptible_infected = np.matmul(x, np.asmatrix(infected))
+    contacts = np.multiply(contact_matrix, susceptible_infected)
+    contacts = np.asarray(contacts)
+    # print(contacts)
+    for column in contacts.transpose():
+        infected += column
+        susceptible -= column
+    susceptible = np.maximum(susceptible, np.zeros(86))
+    return infected, susceptible
 
 
 if __name__ == "__main__":
