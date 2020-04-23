@@ -2,31 +2,28 @@ from src.CCMatrix import CCMatrix
 import numpy as np
 
 # Eerste infected persoon beinvloed wss de curve
-# exposed 5-7
-#
 
-transmission_rate = 0.021 * 5
-exposed_infected = 1.0/7.0
-
-recovery_rate = 0.05
+infectious_rate = 0.05
+# incubation_rate = 1.0/7.0   # incubation period of 7 days
+recovery_rate = 1.0/21.0    # infectious period of 21 days
+contact_reduction = 5       # contact reduction after 30 days (x times less contacts)
 
 
 def main():
-    cc = CCMatrix('../data/cc15.csv', '../data/leeftijden.csv')
+    cc = CCMatrix('cc15.csv', 'leeftijden.csv')
     contact_matrix = cc.cc_matrix
     susceptible = cc.age_array
     exposed = np.zeros(86)
     infected = np.zeros(86)
-    infected[20] = 2
-    infected[21] = 2
+    infected[35] = 2
     recovered = np.zeros(86)
-    contact_matrix = contact_matrix * transmission_rate
+    contact_matrix = contact_matrix * infectious_rate
 
-    for i in range(14):
+    for i in range(60):
         x = np.transpose(np.asmatrix(susceptible))
         # susceptible_susceptible = np.matmul(x, np.asmatrix(susceptible))
-        if i == 7:
-            print("help")
+        if i == 30:
+            contact_matrix *= 1/contact_reduction
         infected_new, susceptible = infect(contact_matrix, infected.copy(), susceptible, x)
         recoveries = infected * recovery_rate
         recovered += recoveries
