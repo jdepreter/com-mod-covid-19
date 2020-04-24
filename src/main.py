@@ -1,5 +1,7 @@
 from src.CCMatrix import CCMatrix
 import numpy as np
+from src.Grapher import Grapher
+
 
 # Eerste infected persoon beinvloed wss de curve
 
@@ -19,7 +21,12 @@ def main():
     recovered = np.zeros(86)
     contact_matrix = contact_matrix * infectious_rate
 
-    for i in range(60):
+    result_s = []
+    result_i = []
+    result_r = []
+    days = 60
+
+    for i in range(days):
         x = np.transpose(np.asmatrix(susceptible))
         # susceptible_susceptible = np.matmul(x, np.asmatrix(susceptible))
         if i == 30:
@@ -31,6 +38,9 @@ def main():
         infected_new = np.maximum(infected_new, np.zeros(86))
 
         infected = infected_new
+        result_s.append(susceptible.sum())
+        result_i.append(infected.sum())
+        result_r.append(recovered.sum())
         print(susceptible.sum() + infected.sum() + recovered.sum())
         print(i)
 
@@ -40,6 +50,9 @@ def main():
     print(recovered.sum())
 
     print(susceptible.sum() + infected.sum() + recovered.sum())
+    g = Grapher(days, [result_s, result_i, result_r])
+    g.animate()
+
 
 
 def infect(contact_matrix, infected, susceptible, x):

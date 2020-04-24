@@ -1,6 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
+
 plt.rcParams['animation.ffmpeg_path'] = '/usr/bin/ffmpeg'
 
 # To save the animation, use e.g.
@@ -12,6 +13,7 @@ plt.rcParams['animation.ffmpeg_path'] = '/usr/bin/ffmpeg'
 # from matplotlib.animation import FFMpegWriter
 # writer = FFMpegWriter(fps=15, metadata=dict(artist='Me'), bitrate=1800)
 # ani.save("movie.mp4", writer=writer)
+
 class Grapher:
     def __init__(self, days: int, y: list):
         """
@@ -22,35 +24,44 @@ class Grapher:
         self.days = days
         self.y = y
 
-    def show(self):
+    def animate(self):
         """
         Plot the graph
         :return: nothing
         """
-        x = np.arange(0, self.days, 1)
+        fig = plt.figure()
+        ax = plt.axes(xlim=(0, self.days), ylim=(0, 10000))
 
-        fig, ax = plt.subplots()
+        lines = [plt.plot([], [])[0] for _ in range(len(self.y))]  # lines to animate
 
-        for yvalues in self.y:
-            line, = ax.plot(x, yvalues, color='k')
+        def init():
+            # init lines
+            for line in lines:
+                line.set_data([], [])
 
-            def update(num, x, y, line):
-                line.set_data(x[:num], y[:num])
-                line.axes.axis([0, 10, 0, 20])
-                return line,
+            return lines  # return everything that must be updated
 
-            ani = animation.FuncAnimation(fig, update, len(x), fargs=[x, yvalues, line],
-                                          interval=200, blit=True)
-            # ani.save('test.gif')
-        mywriter = animation.FFMpegFileWriter(fps=15, metadata=dict(artist='Me'), bitrate=1800)
-        ani.save('myAnimation.mp4', writer=mywriter)
+        def animate(i):
+            # animate lines
 
-        plt.show()
+            for j, line in enumerate(lines):
+                line.set_data(range(i), self.y[j][:i])
+                print(i)
+
+            return lines  # return everything that must be updated
+
+        anim = animation.FuncAnimation(fig, animate, init_func=init,
+                                       frames=len(self.y[0]), interval=100, blit=True)
+
+        # mywriter = animation.FFMpegFileWriter(fps=15, metadata=dict(artist='Me'), bitrate=1800)
+        anim.save('animation.gif', writer='imagemagick', fps=24)
+        # plt.show()
+
 
 # Test:
-days = 10
-y = [np.arange(0, days, 1), np.arange(0, days*2, 2) ]
-g = Grapher(days, y)
-# print(y[:5])
-# print(np.pad(y[:5], (0, days-5), mode='constant', constant_values=0))
-g.show()
+# days = 10
+# y = [np.arange(0, days, 1), np.arange(0, days * 2, 2)]
+# g = Grapher(days, y)
+# # print(y[:5])
+# # print(np.pad(y[:5], (0, days-5), mode='constant', constant_values=0))
+# g.animate()
