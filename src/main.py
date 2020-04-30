@@ -2,13 +2,12 @@ from src.CCMatrix import CCMatrix
 import numpy as np
 from src.Grapher import Grapher
 
-
 # Eerste infected persoon beinvloed wss de curve
 
 infectious_rate = 0.05
 # incubation_rate = 1.0/7.0   # incubation period of 7 days
-recovery_rate = 1.0/21.0    # infectious period of 21 days
-contact_reduction = 5       # contact reduction after 30 days (x times less contacts)
+recovery_rate = 1.0 / 21.0  # infectious period of 21 days
+contact_reduction = 5  # contact reduction after 30 days (x times less contacts)
 
 
 def main():
@@ -26,11 +25,13 @@ def main():
     result_r = []
     days = 60
 
+    result_i_age = np.append([np.zeros(86)], [np.zeros(86)], axis=0)
+
     for i in range(days):
         x = np.transpose(np.asmatrix(susceptible))
         # susceptible_susceptible = np.matmul(x, np.asmatrix(susceptible))
         if i == 30:
-            contact_matrix *= 1/contact_reduction
+            contact_matrix *= 1 / contact_reduction
         infected_new, susceptible = infect(contact_matrix, infected.copy(), susceptible, x)
         recoveries = infected * recovery_rate
         recovered += recoveries
@@ -41,8 +42,9 @@ def main():
         result_s.append(susceptible.sum())
         result_i.append(infected.sum())
         result_r.append(recovered.sum())
+
+        result_i_age = np.append(result_i_age, [infected], axis=0)
         print(susceptible.sum() + infected.sum() + recovered.sum())
-        print(i)
 
     print('---')
     print(susceptible.sum())
@@ -51,8 +53,10 @@ def main():
 
     print(susceptible.sum() + infected.sum() + recovered.sum())
     g = Grapher(days, [result_s, result_i, result_r])
-    g.animate()
+    g.animate("1")
 
+    h = Grapher(days, result_i_age.transpose().tolist())
+    h.animate("2")
 
 
 def infect(contact_matrix, infected, susceptible, x):
