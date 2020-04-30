@@ -1,6 +1,10 @@
 from src.CCMatrix import CCMatrix
 import numpy as np
 
+# TODO: aparte infected box voor gehospitaliseerden
+# TODO: aparte susceptible doos voor mensen die in zorgsector werken (hogere contact rate dan de rest) ?
+# TODO: lagere recovery rate voor gehospitaliseerden, ook hogere death rate
+# TODO: eigenlijk gewoon model maken zoals op tekening
 
 class Model:
     def __init__(self, cc, infectious_rate, incubation_rate, recovery_rate):

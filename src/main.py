@@ -4,12 +4,14 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 # Eerste infected persoon beinvloed wss de curve
+# TODO: optimale infectious_rate bepalen a.d.h.v. optimal fit met data van Italie
+# TODO: bevolking van Italie herschalen volgens distributie van Belgie
 
 
 def main():
     infectious_rate = 0.05
-    incubation_rate = 1.0 / 3.0  # incubation period of 7 days
-    recovery_rate = 1.0 / 14.0  # infectious period of 21 days
+    incubation_rate = 1.0 / 3.0  # incubation period of 3 days
+    recovery_rate = 1.0 / 6.0  # infectious period of 6 days
     cc = CCMatrix('cc15.csv', 'eurostat_pop_age.csv')
 
     reference_infected = np.fromfunction(lambda x, y: 2**(x/2.34), (60, 1), dtype=int)
