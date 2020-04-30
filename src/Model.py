@@ -11,7 +11,7 @@ class Model:
         self.contact_matrix = cc.cc_matrix * infectious_rate
 
         # initial data for model
-        self.susceptible = cc.age_array
+        self.susceptible = cc.belgium_count.astype('float64')
         self.exposed = np.zeros(86)
         self.infected = np.zeros(86)
         self.infected[38] = 1
