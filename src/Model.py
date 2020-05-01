@@ -13,7 +13,14 @@ class Model:
         self.infectious_rate = infectious_rate
         self.incubation_rate = incubation_rate
         self.recovery_rate = recovery_rate
+        self.recovery_rate_hospital = recovery_rate / 2.0
+        self.recovery_rate_ic = recovery_rate / 4.0
         self.contact_matrix = cc.cc_matrix * infectious_rate
+
+        # extra rates
+        self.hospital_rate = np.full(86, 0.01)     # Temp value
+        self.hospital_ic_rate = np.full(86, 0.2)  # Temp value
+        self.death_rate = np.full(86, 0.2)        # Temp value
 
         # initial data for model
         # SEIR
@@ -26,10 +33,14 @@ class Model:
         # Extra Compartments
         self.hospital = np.zeros(86)
         self.hospital_ic = np.zeros(86)
+        self.dead = np.zeros(86)
 
         # data (for graphing)
         self.infected_data = []
         self.recovered_data = []
+        self.hospital_data = []
+        self.ic_data = []
+        self.dead_data = []
 
     def infect(self):
         """
@@ -53,10 +64,12 @@ class Model:
             self.susceptible -= column
         self.susceptible = np.maximum(self.susceptible, np.zeros(86))
 
-    def recover(self, infected):
+    def recover(self, infected, hospitalized, ic):
         """
         From infected, hospital, ic to recovered compartment
         :param infected: infected people the day before
+        :param hospitalized: hospitalized people the day before
+        :param ic: people in ic the day before
         :return:
         """
         recoveries = infected * self.recovery_rate
@@ -64,13 +77,26 @@ class Model:
         self.infected -= recoveries
         self.infected = np.maximum(self.infected, np.zeros(86))
 
+        recoveries = hospitalized * self.recovery_rate_hospital
+        self.recovered += recoveries
+        self.hospital -= recoveries
+        self.hospital = np.maximum(self.hospital, np.zeros(86))
+
+        recoveries = ic * self.recovery_rate_ic
+        self.recovered += recoveries
+        self.hospital_ic -= recoveries
+        self.hospital_ic = np.maximum(self.hospital_ic, np.zeros(86))
+
     def go_to_hospital(self, infected):
         """
         From infected compartment to hospital compartment
         :param infected: infected people the day before
         :return:
         """
-        ...
+        hospitalized = infected * self.hospital_rate
+        self.hospital += hospitalized
+        self.infected -= hospitalized
+        self.infected = np.maximum(self.infected, np.zeros(86))
 
     def go_to_ic(self, hospitalized):
         """
@@ -78,16 +104,48 @@ class Model:
         :param hospitalized: hospitalized people the day before
         :return:
         """
+        ic = hospitalized * self.hospital_ic_rate
+        self.hospital_ic += ic
+        self.hospital -= ic
+        self.hospital = np.maximum(self.hospital, np.zeros(86))
+        ...
+
+    def die(self, infected, hospitalized, ic):
+        """
+        From infected, hospitalized, ic to Death
+        :param infected: infected people (not in hospital / ic)
+        :param hospitalized: people in hospital (not in ic)
+        :param ic: people in ic
+        :return:
+        """
+        dead = ic * self.death_rate
+        self.dead += dead
+        self.hospital_ic -= dead
+        self.hospital_ic = np.maximum(self.hospital_ic, np.zeros(86))
+        # TODO infected -> dead, hospital -> dead
         ...
 
     def run(self, days):
         for i in range(days):
+            # Do not use new data for calculating transitions
             infected = self.infected
-            self.infect()
-            self.recover(infected)
+            hospital = self.hospital
+            ic = self.hospital_ic
 
+            # Transitions between compartments
+            self.infect()
+            self.recover(infected, hospital, ic)
+            self.go_to_hospital(infected)
+            self.go_to_ic(hospital)
+            self.die(infected, hospital, ic)
+
+            # Save data for graphing
             self.infected_data.append(self.infected.sum())
             self.recovered_data.append(self.recovered.sum())
+            self.hospital_data.append(self.hospital.sum())
+            self.ic_data.append(self.hospital_ic.sum())
+            self.dead_data.append(self.dead.sum())
+
             # print(self.susceptible.sum() + infected.sum() + self.recovered.sum())
             # print(i)
         # print('---')

@@ -54,9 +54,11 @@ def main():
             if sum_of_squares > prev_sum_of_squares or infectious_rate <= 0 or infectious_rate >= 1:
                 break
 
-
     plt.plot(model.infected_data, label='Model infected')
+    plt.plot(model.hospital_data, label='Model hospitalized')
+    plt.plot(model.ic_data, label='Model intensive care')
     plt.plot(model.recovered_data, label='Model recovered')
+    plt.plot(model.dead_data, label='Model died')
     plt.plot(reference_infected, label='Reference infected')
     plt.legend()
     plt.show()
