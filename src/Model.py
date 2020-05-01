@@ -1,6 +1,7 @@
 from src.CCMatrix import CCMatrix
 import numpy as np
 
+
 # TODO: aparte infected box voor gehospitaliseerden
 # TODO: aparte susceptible doos voor mensen die in zorgsector werken (hogere contact rate dan de rest) ?
 # TODO: lagere recovery rate voor gehospitaliseerden, ook hogere death rate
@@ -15,19 +16,34 @@ class Model:
         self.contact_matrix = cc.cc_matrix * infectious_rate
 
         # initial data for model
+        # SEIR
         self.susceptible = cc.belgium_count.astype('float64')
         self.exposed = np.zeros(86)
         self.infected = np.zeros(86)
         self.infected[38] = 1
         self.recovered = np.zeros(86)
 
+        # Extra Compartments
+        self.hospital = np.zeros(86)
+        self.hospital_ic = np.zeros(86)
+
         # data (for graphing)
         self.infected_data = []
         self.recovered_data = []
 
     def infect(self):
+        """
+        From normal population to infected compartment
+        :return:
+        """
         susceptible_transpose = np.transpose(np.asmatrix(self.susceptible))
+        # Normal Contact matrix for infected people
         susceptible_infected = np.matmul(susceptible_transpose, np.asmatrix(self.infected))
+        # Lower Contact matrix for hospitalized people
+        # TODO
+        # Add both to get total infected
+        # TODO
+
         contacts = np.multiply(self.contact_matrix, susceptible_infected)
         contacts = np.asarray(contacts)
 
@@ -38,10 +54,31 @@ class Model:
         self.susceptible = np.maximum(self.susceptible, np.zeros(86))
 
     def recover(self, infected):
+        """
+        From infected, hospital, ic to recovered compartment
+        :param infected: infected people the day before
+        :return:
+        """
         recoveries = infected * self.recovery_rate
         self.recovered += recoveries
         self.infected -= recoveries
         self.infected = np.maximum(self.infected, np.zeros(86))
+
+    def go_to_hospital(self, infected):
+        """
+        From infected compartment to hospital compartment
+        :param infected: infected people the day before
+        :return:
+        """
+        ...
+
+    def go_to_ic(self, hospitalized):
+        """
+        From hospital compartment to IC compartment
+        :param hospitalized: hospitalized people the day before
+        :return:
+        """
+        ...
 
     def run(self, days):
         for i in range(days):
