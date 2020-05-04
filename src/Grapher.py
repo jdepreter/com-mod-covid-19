@@ -16,7 +16,7 @@ plt.rcParams['animation.ffmpeg_path'] = '/usr/bin/ffmpeg'
 # ani.save("movie.mp4", writer=writer)
 
 class Grapher:
-    def __init__(self, days: int, y: list):
+    def __init__(self, days: int, y: list, labels: list, save=True, display=False):
         """
         :param days: days of the simulation
         :param y: list containing list of y values
@@ -24,6 +24,9 @@ class Grapher:
         """
         self.days = days
         self.y = y
+        self.labels = labels
+        self.save = save
+        self.display = display
 
     def animate(self, name):
         """
@@ -33,7 +36,7 @@ class Grapher:
         fig = plt.figure()
         ax = plt.axes()
 
-        lines = [plt.plot([], [])[0] for _ in range(len(self.y))]  # lines to animate
+        lines = [plt.plot([], [], label=self.labels[_])[0] for _ in range(len(self.y))]  # lines to animate
 
         def init():
             # init lines
@@ -56,8 +59,12 @@ class Grapher:
                                        frames=len(self.y[0]), interval=100, blit=False)
 
         # mywriter = animation.FFMpegFileWriter(fps=15, metadata=dict(artist='Me'), bitrate=1800)
-        anim.save('{}.gif'.format(name), writer='imagemagick', fps=10)
-        # plt.show()
+        plt.legend(loc="upper left")
+        if self.save:
+            anim.save('{}.gif'.format(name), writer='imagemagick', fps=10)
+
+        if self.display:
+            plt.show()
 
 # Test:
 # days = 10

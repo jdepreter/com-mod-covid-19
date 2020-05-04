@@ -74,16 +74,17 @@ def main():
     days = 60
     model.run(days)
 
-    plt.plot(model.infected_data, label='Model infected')
-    plt.plot(model.hospital_data, label='Model hospitalized')
-    plt.plot(model.ic_data, label='Model intensive care')
-    plt.plot(model.recovered_data, label='Model recovered')
-    plt.plot(model.dead_data, label='Model died')
-    plt.plot(model.case_data, label='Model cases')
-    plt.plot(reference_cases, label='Reference cases')
-    plt.legend()
-    plt.show()
-    g = Grapher(days, [model.infected_data, model.hospital_data, model.ic_data, model.recovered_data, model.dead_data])
+    # plt.plot(model.infected_data, label='Model infected')
+    # plt.plot(model.hospital_data, label='Model hospitalized')
+    # plt.plot(model.ic_data, label='Model intensive care')
+    # plt.plot(model.recovered_data, label='Model recovered')
+    # plt.plot(model.dead_data, label='Model died')
+    # plt.plot(model.case_data, label='Model cases')
+    # plt.plot(reference_cases, label='Reference cases')
+    # plt.legend()
+    # plt.show()
+    g = Grapher(days, [model.infected_data, model.hospital_data, model.ic_data, model.recovered_data, model.dead_data],
+                ["Infected", "Hospital", "IC", "Recovered", "Dead"])
     g.animate("model")
     # plt.show()
 
