@@ -14,13 +14,13 @@ class Model:
         self.incubation_rate = incubation_rate
         self.recovery_rate = recovery_rate
         self.recovery_rate_hospital = recovery_rate / 2.0
-        self.recovery_rate_ic = recovery_rate / 4.0
+        self.recovery_rate_ic = recovery_rate / 3.0
         self.contact_matrix = cc.cc_matrix * infectious_rate
 
         # extra rates
-        self.hospital_rate = np.full(86, 0.01)     # Temp value
+        self.hospital_rate = np.array([(85-i)/10 for i in range(86)])     # Temp value
         self.hospital_ic_rate = np.full(86, 0.2)  # Temp value
-        self.death_rate = np.full(86, 0.2)        # Temp value
+        self.death_rate = np.full(86, 0.26)        # Temp value
 
         # initial data for model
         # SEIR
@@ -31,6 +31,8 @@ class Model:
         self.recovered = np.zeros(86)
 
         # Extra Compartments
+        self.susceptible_hospital_staff = np.append(np.zeros(21), np.append(np.full(45, 3600), np.zeros(20)))
+        self.susceptible -= self.susceptible_hospital_staff
         self.hospital = np.zeros(86)
         self.hospital_ic = np.zeros(86)
         self.dead = np.zeros(86)
@@ -42,20 +44,16 @@ class Model:
         self.ic_data = []
         self.dead_data = []
 
-    def infect(self):
+    def infect(self, susceptible, infected, factor):
         """
         From normal population to infected compartment
         :return:
         """
-        susceptible_transpose = np.transpose(np.asmatrix(self.susceptible))
+        susceptible_transpose = np.transpose(np.asmatrix(susceptible))
         # Normal Contact matrix for infected people
-        susceptible_infected = np.matmul(susceptible_transpose, np.asmatrix(self.infected))
-        # Lower Contact matrix for hospitalized people
-        # TODO
-        # Add both to get total infected
-        # TODO
+        susceptible_infected = np.matmul(susceptible_transpose, np.asmatrix(infected))
 
-        contacts = np.multiply(self.contact_matrix, susceptible_infected)
+        contacts = np.multiply(self.contact_matrix, susceptible_infected) * factor
         contacts = np.asarray(contacts)
 
         for column in contacts.transpose():
@@ -63,6 +61,7 @@ class Model:
             self.infected += column
             self.susceptible -= column
         self.susceptible = np.maximum(self.susceptible, np.zeros(86))
+
 
     def recover(self, infected, hospitalized, ic):
         """
@@ -133,7 +132,8 @@ class Model:
             ic = self.hospital_ic
 
             # Transitions between compartments
-            self.infect()
+            self.infect(self.susceptible, infected, 1)
+            self.infect(self.susceptible_hospital_staff, infected, 5)
             self.recover(infected, hospital, ic)
             self.go_to_hospital(infected)
             self.go_to_ic(hospital)
