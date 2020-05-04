@@ -17,7 +17,7 @@ class Model:
         self.contact_matrix = cc.cc_matrix * infectious_rate
 
         # extra rates
-        self.hospital_rate = np.array([(85-i)/10 for i in range(86)])     # Temp value
+        self.hospital_rate = np.array([i/1000 for i in range(86)])     # Temp value
         self.hospital_ic_rate = np.full(86, 0.2)  # Temp value
         self.death_rate = np.full(86, 0.26)        # Temp value
 
@@ -42,6 +42,7 @@ class Model:
         self.hospital_data = []
         self.ic_data = []
         self.dead_data = []
+        self.case_data = []
 
     def infect(self, susceptible, infected, factor):
         """
@@ -144,6 +145,7 @@ class Model:
             self.hospital_data.append(self.hospital.sum())
             self.ic_data.append(self.hospital_ic.sum())
             self.dead_data.append(self.dead.sum())
+            self.case_data.append(self.infected.sum() + self.recovered.sum() + self.hospital.sum() + self.hospital_ic.sum() + self.dead.sum())
 
             # print(self.susceptible.sum() + infected.sum() + self.recovered.sum())
             # print(i)
