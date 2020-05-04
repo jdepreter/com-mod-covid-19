@@ -25,6 +25,10 @@ class CCMatrix:
         self.italy_count = self.belgium_italy_df[italian & age_ok]
         self.italy_count = self.italy_count["Value"].to_numpy()         # Create numpy array
 
+        self.belgium_distribution = self.belgium_count/self.belgium_count.sum()
+        self.italy_distribution = self.italy_count/self.italy_count.sum()
+        self.belgian_italy_count = self.belgium_distribution/self.italy_distribution*self.italy_count
+
         print('cc matrix with size', self.cc_matrix.size, 'inserted')
         print('age array with size', self.belgium_count.size, 'inserted')
 

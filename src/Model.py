@@ -2,7 +2,6 @@ from src.CCMatrix import CCMatrix
 import numpy as np
 
 
-# TODO: aparte infected box voor gehospitaliseerden
 # TODO: aparte susceptible doos voor mensen die in zorgsector werken (hogere contact rate dan de rest) ?
 # TODO: lagere recovery rate voor gehospitaliseerden, ook hogere death rate
 # TODO: eigenlijk gewoon model maken zoals op tekening
@@ -24,7 +23,7 @@ class Model:
 
         # initial data for model
         # SEIR
-        self.susceptible = cc.belgium_count.astype('float64')
+        self.susceptible = cc.belgian_italy_count.astype('float64')
         self.exposed = np.zeros(86)
         self.infected = np.zeros(86)
         self.infected[38] = 1
