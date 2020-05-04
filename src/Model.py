@@ -2,9 +2,7 @@ from src.CCMatrix import CCMatrix
 import numpy as np
 
 
-# TODO: aparte susceptible doos voor mensen die in zorgsector werken (hogere contact rate dan de rest) ?
-# TODO: lagere recovery rate voor gehospitaliseerden, ook hogere death rate
-# TODO: eigenlijk gewoon model maken zoals op tekening
+# TODO: Exposed
 
 class Model:
     def __init__(self, cc, infectious_rate, incubation_rate, recovery_rate):
@@ -17,7 +15,7 @@ class Model:
         self.contact_matrix = cc.cc_matrix * infectious_rate
 
         # extra rates
-        self.hospital_rate = np.array([(85-i)/10 for i in range(86)])     # Temp value
+        self.hospital_rate = np.array([i/1000 for i in range(86)])     # Temp value
         self.hospital_ic_rate = np.full(86, 0.2)  # Temp value
         self.death_rate = np.full(86, 0.26)        # Temp value
 
@@ -30,18 +28,18 @@ class Model:
         self.recovered = np.zeros(86)
 
         # Extra Compartments
-        self.susceptible_hospital_staff = np.append(np.zeros(21), np.append(np.full(45, 3600), np.zeros(20)))
-        self.susceptible -= self.susceptible_hospital_staff
+        # self.susceptible_hospital_staff = np.append(np.zeros(21), np.append(np.full(45, 3600), np.zeros(20)))
+        # self.susceptible -= self.susceptible_hospital_staff
         self.hospital = np.zeros(86)
         self.hospital_ic = np.zeros(86)
         self.dead = np.zeros(86)
 
         # data (for graphing)
-        self.infected_data = []
-        self.recovered_data = []
-        self.hospital_data = []
-        self.ic_data = []
-        self.dead_data = []
+        self.infected_data = np.empty(0)
+        self.recovered_data = np.empty(0)
+        self.hospital_data = np.empty(0)
+        self.ic_data = np.empty(0)
+        self.dead_data = np.empty(0)
 
     def infect(self, susceptible, infected, factor):
         """
@@ -132,18 +130,18 @@ class Model:
 
             # Transitions between compartments
             self.infect(self.susceptible, infected, 1)
-            self.infect(self.susceptible_hospital_staff, infected, 5)
+            # self.infect(self.susceptible_hospital_staff, infected, 5)
             self.recover(infected, hospital, ic)
             self.go_to_hospital(infected)
             self.go_to_ic(hospital)
             self.die(infected, hospital, ic)
 
             # Save data for graphing
-            self.infected_data.append(self.infected.sum())
-            self.recovered_data.append(self.recovered.sum())
-            self.hospital_data.append(self.hospital.sum())
-            self.ic_data.append(self.hospital_ic.sum())
-            self.dead_data.append(self.dead.sum())
+            self.infected_data = np.append(self.infected_data, self.infected.sum())
+            self.recovered_data = np.append(self.recovered_data, self.recovered.sum())
+            self.hospital_data = np.append(self.hospital_data, self.hospital.sum())
+            self.ic_data = np.append(self.ic_data, self.hospital_ic.sum())
+            self.dead_data = np.append(self.dead_data, self.dead.sum())
 
             # print(self.susceptible.sum() + infected.sum() + self.recovered.sum())
             # print(i)

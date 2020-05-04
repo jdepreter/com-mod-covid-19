@@ -31,7 +31,7 @@ class Grapher:
         :return: nothing
         """
         fig = plt.figure()
-        ax = plt.axes(xlim=(0, self.days), ylim=(0, 1000))
+        ax = plt.axes()
 
         lines = [plt.plot([], [])[0] for _ in range(len(self.y))]  # lines to animate
 
@@ -48,13 +48,15 @@ class Grapher:
             for j, line in enumerate(lines):
                 line.set_data(range(i), self.y[j][:i])
 
-            return lines  # return everything that must be updated
+            ax.relim()
+            ax.autoscale_view()
+            return lines, ax  # return everything that must be updated
 
         anim = animation.FuncAnimation(fig, animate, init_func=init,
-                                       frames=len(self.y[0]), interval=100, blit=True)
+                                       frames=len(self.y[0]), interval=100, blit=False)
 
         # mywriter = animation.FFMpegFileWriter(fps=15, metadata=dict(artist='Me'), bitrate=1800)
-        anim.save('{}.gif'.format(name), writer='imagemagick', fps=24)
+        anim.save('{}.gif'.format(name), writer='imagemagick', fps=10)
         # plt.show()
 
 # Test:
@@ -63,4 +65,4 @@ class Grapher:
 # g = Grapher(days, y)
 # # print(y[:5])
 # # print(np.pad(y[:5], (0, days-5), mode='constant', constant_values=0))
-# g.animate()
+# g.animate("test")

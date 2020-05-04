@@ -1,5 +1,6 @@
 from src.CCMatrix import CCMatrix
 from src.Model import Model
+from src.Grapher import Grapher
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -13,13 +14,13 @@ def optimal_fit(reference_infected, infectious_rate, incubation_rate, recovery_r
     inf_rate_diff = 0.001
     model = Model(cc, infectious_rate + inf_rate_diff, incubation_rate, recovery_rate)
     model.run(num_days)
-    residual = np.absolute(model.infected_data - reference_infected)
+    residual = np.absolute(model.infected_data + model.hospital_data + model.ic_data - reference_infected)
     pos_sum_of_squares = np.sum(residual ** 2)
 
     inf_rate_diff = -0.001
     model = Model(cc, infectious_rate + inf_rate_diff, incubation_rate, recovery_rate)
     model.run(num_days)
-    residual = np.absolute(model.infected_data - reference_infected)
+    residual = np.absolute(model.infected_data + model.hospital_data + model.ic_data - reference_infected)
     neg_sum_of_squares = np.sum(residual ** 2)
 
     if neg_sum_of_squares < pos_sum_of_squares:
@@ -30,7 +31,7 @@ def optimal_fit(reference_infected, infectious_rate, incubation_rate, recovery_r
             print(infectious_rate)
             model = Model(cc, infectious_rate, incubation_rate, recovery_rate)
             model.run(num_days)
-            residual = np.absolute(model.infected_data - reference_infected)
+            residual = np.absolute(model.infected_data + model.hospital_data + model.ic_data - reference_infected)
             sum_of_squares = np.sum(residual ** 2)
             if sum_of_squares > prev_sum_of_squares or infectious_rate <= 0 or infectious_rate >= 1:
                 break
@@ -42,9 +43,9 @@ def optimal_fit(reference_infected, infectious_rate, incubation_rate, recovery_r
         while True:
             infectious_rate += 0.001
             print(infectious_rate)
-            model = SIRModel(cc, infectious_rate, incubation_rate, recovery_rate)
+            model = Model(cc, infectious_rate, incubation_rate, recovery_rate)
             model.run(num_days)
-            residual = np.absolute(model.infected_data - reference_infected)
+            residual = np.absolute(model.infected_data + model.hospital_data + model.ic_data - reference_infected)
             sum_of_squares = np.sum(residual ** 2)
             if sum_of_squares > prev_sum_of_squares or infectious_rate <= 0 or infectious_rate >= 1:
                 break
@@ -71,16 +72,22 @@ def main():
     infectious_rate = optimal_fit(reference_infected, infectious_rate, incubation_rate, recovery_rate, cc, 14)
 
     model = Model(cc, infectious_rate, incubation_rate, recovery_rate)
-    model.run(14)
+    days = 60
+    model.run(days)
 
-    plt.plot(model.infected_data, label='Model infected')
+    # plt.plot(model.infected_data, label='Model infected')
     # plt.plot(model.hospital_data, label='Model hospitalized')
     # plt.plot(model.ic_data, label='Model intensive care')
     # plt.plot(model.recovered_data, label='Model recovered')
     # plt.plot(model.dead_data, label='Model died')
-    plt.plot(reference_infected, label='Reference infected')
-    plt.legend()
-    plt.show()
+    # plt.plot(reference_infected, label='Reference infected')
+    # plt.legend()
+    # plt.show()
+    g = Grapher(days, [model.hospital_data, model.ic_data, model.dead_data])
+    g.animate("model")
+    # plt.show()
+
+
 
 
 if __name__ == "__main__":
