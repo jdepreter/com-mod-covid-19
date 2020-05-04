@@ -1,8 +1,7 @@
 from src.CCMatrix import CCMatrix
 import numpy as np
 
-
-# TODO: Exposed
+# TODO: alle rates optimaliseren adhv data
 
 class Model:
     def __init__(self, cc, infectious_rate, incubation_rate, recovery_rate):
@@ -15,7 +14,7 @@ class Model:
         self.contact_matrix = cc.cc_matrix * infectious_rate
 
         # extra rates
-        self.hospital_rate = np.array([i / 1000 for i in range(86)])  # Temp value
+        self.hospital_rate = np.array([i/1000 for i in range(86)])     # Temp value
         self.hospital_ic_rate = np.full(86, 0.2)  # Temp value
         self.death_rate = np.full(86, 0.26)  # Temp value
 
@@ -56,9 +55,14 @@ class Model:
 
         for column in contacts.transpose():
             column = np.minimum(self.susceptible, column)
-            self.infected += column
+            self.exposed += column
             self.susceptible -= column
         self.susceptible = np.maximum(self.susceptible, np.zeros(86))
+
+    def exp_to_inf(self, exposed):
+        exp_to_inf = self.incubation_rate*exposed
+        self.infected += exp_to_inf
+        self.exposed -= exp_to_inf
 
     def recover(self, infected, hospitalized, ic):
         """
@@ -126,11 +130,13 @@ class Model:
             # Do not use new data for calculating transitions
             infected = self.infected
             hospital = self.hospital
+            exposed = self.exposed
             ic = self.hospital_ic
 
             # Transitions between compartments
             self.infect(self.susceptible, infected, 1)
             # self.infect(self.susceptible_hospital_staff, infected, 5)
+            self.exp_to_inf(exposed)
             self.recover(infected, hospital, ic)
             self.go_to_hospital(infected)
             self.go_to_ic(hospital)
