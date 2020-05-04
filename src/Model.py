@@ -15,9 +15,9 @@ class Model:
         self.contact_matrix = cc.cc_matrix * infectious_rate
 
         # extra rates
-        self.hospital_rate = np.array([i/1000 for i in range(86)])     # Temp value
+        self.hospital_rate = np.array([i / 1000 for i in range(86)])  # Temp value
         self.hospital_ic_rate = np.full(86, 0.2)  # Temp value
-        self.death_rate = np.full(86, 0.26)        # Temp value
+        self.death_rate = np.full(86, 0.26)  # Temp value
 
         # initial data for model
         # SEIR
@@ -40,6 +40,7 @@ class Model:
         self.hospital_data = np.empty(0)
         self.ic_data = np.empty(0)
         self.dead_data = np.empty(0)
+        self.case_data = np.empty(0)
 
     def infect(self, susceptible, infected, factor):
         """
@@ -58,7 +59,6 @@ class Model:
             self.infected += column
             self.susceptible -= column
         self.susceptible = np.maximum(self.susceptible, np.zeros(86))
-
 
     def recover(self, infected, hospitalized, ic):
         """
@@ -142,6 +142,8 @@ class Model:
             self.hospital_data = np.append(self.hospital_data, self.hospital.sum())
             self.ic_data = np.append(self.ic_data, self.hospital_ic.sum())
             self.dead_data = np.append(self.dead_data, self.dead.sum())
+            self.case_data = np.append(self.case_data, self.infected.sum() + self.recovered.sum() + self.hospital.sum()
+                                       + self.hospital_ic.sum() + self.dead.sum())
 
             # print(self.susceptible.sum() + infected.sum() + self.recovered.sum())
             # print(i)
