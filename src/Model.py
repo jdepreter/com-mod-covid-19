@@ -1,7 +1,9 @@
 from src.CCMatrix import CCMatrix
 import numpy as np
+from scipy import interpolate
 
 # TODO: alle rates optimaliseren adhv data
+
 
 class Model:
     def __init__(self, cc, infectious_rate, incubation_rate, recovery_rate):
@@ -9,12 +11,19 @@ class Model:
         self.infectious_rate = infectious_rate
         self.incubation_rate = incubation_rate
         self.recovery_rate = recovery_rate
-        self.recovery_rate_hospital = recovery_rate / 2.0
-        self.recovery_rate_ic = recovery_rate / 3.0
+        self.recovery_rate_hospital = recovery_rate
+        self.recovery_rate_ic = 1.0 / 14.0
         self.contact_matrix = cc.cc_matrix * infectious_rate
 
         # extra rates
-        self.hospital_rate = np.array([i/1000 for i in range(86)])     # Temp value
+        # interpolate hospital rates
+        nodes = np.array([[0, 0], [2, 0.3], [34, 2.5], [70, 12.2], [80, 15.8], [85, 17.2]])
+        x = nodes[:, 0]
+        y = nodes[:, 1]
+        f = interpolate.interp1d(x, y)
+        xnew = np.arange(0, 86)
+        self.hospital_rate = f(xnew) / 100
+
         self.hospital_ic_rate = np.full(86, 0.2)  # Temp value
         self.death_rate = np.full(86, 0.26)  # Temp value
 

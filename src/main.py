@@ -71,22 +71,23 @@ def main():
     infectious_rate = optimal_fit(reference_cases, infectious_rate, incubation_rate, recovery_rate, cc, 20)
 
     model = Model(cc, infectious_rate, incubation_rate, recovery_rate)
-    days = 60
+    days = 90
     model.run(days)
 
     # plt.plot(model.infected_data, label='Model infected')
-    # plt.plot(model.hospital_data, label='Model hospitalized')
-    # plt.plot(model.ic_data, label='Model intensive care')
+    plt.plot(model.hospital_data, label='Model hospitalized')
+    plt.plot(model.ic_data, label='Model intensive care')
     # plt.plot(model.recovered_data, label='Model recovered')
-    # plt.plot(model.dead_data, label='Model died')
+    plt.plot(model.dead_data, label='Model died')
     # plt.plot(model.case_data, label='Model cases')
     # plt.plot(reference_cases, label='Reference cases')
-    # plt.legend()
-    # plt.show()
-    g = Grapher(days, [model.infected_data, model.hospital_data, model.ic_data, model.recovered_data, model.dead_data],
-                ["Infected", "Hospital", "IC", "Recovered", "Dead"])
-    g.animate("model")
-    # plt.show()
+    plt.legend()
+    plt.show()
+    # g = Grapher(days, [model.infected_data, model.hospital_data, model.ic_data, model.recovered_data, model.dead_data],
+    #             ["Infected", "Hospital", "IC", "Recovered", "Dead"], display=True, save=True)
+    # g = Grapher(days, [model.infected_data, model.hospital_data, model.ic_data, model.recovered_data, model.dead_data],
+    #             ["Hospital", "IC", "Recovered", "Dead"], display=True, save=True)
+    # g.animate("model")
 
 
 if __name__ == "__main__":
