@@ -71,7 +71,7 @@ def main():
     infectious_rate = optimal_fit(reference_cases, infectious_rate, incubation_rate, recovery_rate, cc, 20)
 
     model = Model(cc, infectious_rate, incubation_rate, recovery_rate)
-    days = 90
+    days = 130
     model.run(days)
 
     # plt.plot(model.infected_data, label='Model infected')
@@ -83,6 +83,7 @@ def main():
     # plt.plot(reference_cases, label='Reference cases')
     plt.legend()
     plt.show()
+    print(model.dead_data[-1])
     # g = Grapher(days, [model.infected_data, model.hospital_data, model.ic_data, model.recovered_data, model.dead_data],
     #             ["Infected", "Hospital", "IC", "Recovered", "Dead"], display=True, save=True)
     # g = Grapher(days, [model.infected_data, model.hospital_data, model.ic_data, model.recovered_data, model.dead_data],

@@ -11,8 +11,8 @@ class Model:
         self.infectious_rate = infectious_rate
         self.incubation_rate = incubation_rate
         self.recovery_rate = recovery_rate
-        self.recovery_rate_hospital = 1.0 / 8.0
-        self.recovery_rate_ic = 1.0 / 10.0
+        self.recovery_rate_hospital = (1.0 - 0.2) / 8.0
+        self.recovery_rate_ic = (1.0 - 0.26) / 10.0
         self.contact_matrix = cc.cc_matrix * infectious_rate
 
         # extra rates
@@ -22,10 +22,10 @@ class Model:
         y = nodes[:, 1]
         f = interpolate.interp1d(x, y)
         xnew = np.arange(0, 86)
-        self.hospital_rate = f(xnew) / 100
+        self.hospital_rate = f(xnew) / 100.0 / 6.0
 
-        self.hospital_ic_rate = np.full(86, 0.2)  # Temp value
-        self.death_rate = np.full(86, 0.26)  # Temp value
+        self.hospital_ic_rate = np.full(86, 0.2 / 8.0)  # Temp value
+        self.death_rate = np.full(86, 0.26 / 10.0)  # Temp value
 
         # initial data for model
         # SEIR
