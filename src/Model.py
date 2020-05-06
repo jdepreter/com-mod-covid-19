@@ -39,6 +39,7 @@ class Model:
         # self.susceptible_hospital_staff = np.append(np.zeros(21), np.append(np.full(45, 3600), np.zeros(20)))
         # self.susceptible -= self.susceptible_hospital_staff
         self.hospital = np.zeros(86)
+        self.hospital_total = np.zeros(86)
         self.hospital_ic = np.zeros(86)
         self.dead = np.zeros(86)
 
@@ -46,6 +47,7 @@ class Model:
         self.infected_data = np.empty(0)
         self.recovered_data = np.empty(0)
         self.hospital_data = np.empty(0)
+        self.hospital_total_data = np.empty(0)
         self.ic_data = np.empty(0)
         self.dead_data = np.empty(0)
         self.case_data = np.empty(0)
@@ -104,6 +106,7 @@ class Model:
         """
         hospitalized = infected * self.hospital_rate
         self.hospital += hospitalized
+        self.hospital_total += hospitalized
         self.infected -= hospitalized
         self.infected = np.maximum(self.infected, np.zeros(86))
 
@@ -159,6 +162,7 @@ class Model:
             self.dead_data = np.append(self.dead_data, self.dead.sum())
             self.case_data = np.append(self.case_data, self.infected.sum() + self.recovered.sum() + self.hospital.sum()
                                        + self.hospital_ic.sum() + self.dead.sum())
+            self.hospital_total_data = np.append(self.hospital_total_data, self.hospital_total.sum())
 
             # print(self.susceptible.sum() + infected.sum() + self.recovered.sum())
             # print(i)
