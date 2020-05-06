@@ -11,8 +11,8 @@ class Model:
         self.infectious_rate = infectious_rate
         self.incubation_rate = incubation_rate
         self.recovery_rate = recovery_rate
-        self.recovery_rate_hospital = recovery_rate
-        self.recovery_rate_ic = 1.0 / 14.0
+        self.recovery_rate_hospital = 1.0 / 8.0
+        self.recovery_rate_ic = 1.0 / 10.0
         self.contact_matrix = cc.cc_matrix * infectious_rate
 
         # extra rates
