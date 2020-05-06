@@ -20,12 +20,13 @@ class Model:
 
         # extra rates
         # interpolate hospital rates
-        nodes = np.array([[0, 0], [2, 0.3], [34, 2.5], [70, 12.2], [80, 15.8], [85, 17.2]])
-        x = nodes[:, 0]
-        y = nodes[:, 1]
-        f = interpolate.interp1d(x, y)
-        xnew = np.arange(0, 86)
-        self.hospital_rate = f(xnew) / 100.0 / 6.0
+        # nodes = np.array([[0, 0], [2, 0.3], [34, 2.5], [70, 12.2], [80, 15.8], [85, 17.2]])
+        # x = nodes[:, 0]
+        # y = nodes[:, 1]
+        # f = interpolate.interp1d(x, y)
+        # xnew = np.arange(0, 86)
+        # self.hospital_rate = f(xnew) / 100.0 / 6.0
+        self.hospital_rate = 0.14/6.0
 
         self.hospital_ic_rate = np.full(86, self.hospital_ic_chance / 8.0)
         self.death_rate = np.full(86, self.ic_death_chance / 10.0)
@@ -34,6 +35,7 @@ class Model:
         # initial data for model
         # SEIR
         self.susceptible = cc.belgian_italy_count.astype('float64')
+        print(self.susceptible.sum())
         self.exposed = np.zeros(86)
         self.infected = np.zeros(86)
         self.infected[38] = 1
@@ -135,6 +137,7 @@ class Model:
         :return:
         """
         dead = ic * self.death_rate
+        # TODO: 7300 ICU bedden, daarna met zeer hoge kans laten dood gaan
         self.dead += dead
         self.hospital_ic -= dead
         self.hospital_ic = np.maximum(self.hospital_ic, np.zeros(86))
