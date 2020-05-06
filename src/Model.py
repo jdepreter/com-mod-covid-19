@@ -11,8 +11,11 @@ class Model:
         self.infectious_rate = infectious_rate
         self.incubation_rate = incubation_rate
         self.recovery_rate = recovery_rate
-        self.recovery_rate_hospital = (1.0 - 0.2) / 8.0
-        self.recovery_rate_ic = (1.0 - 0.26) / 10.0
+        self.hospital_ic_chance = 0.2
+        self.hospital_death_chance = 0.04
+        self.ic_death_chance = 0.26
+        self.recovery_rate_hospital = (1.0 - self.hospital_ic_chance - self.hospital_death_chance) / 8.0
+        self.recovery_rate_ic = (1.0 - self.ic_death_chance) / 10.0
         self.contact_matrix = cc.cc_matrix * infectious_rate
 
         # extra rates
@@ -24,8 +27,9 @@ class Model:
         xnew = np.arange(0, 86)
         self.hospital_rate = f(xnew) / 100.0 / 6.0
 
-        self.hospital_ic_rate = np.full(86, 0.2 / 8.0)  # Temp value
-        self.death_rate = np.full(86, 0.26 / 10.0)  # Temp value
+        self.hospital_ic_rate = np.full(86, self.hospital_ic_chance / 8.0)
+        self.death_rate = np.full(86, self.ic_death_chance / 10.0)
+        self.hospital_death_rate = np.full(86, self.hospital_death_chance / 8.0)
 
         # initial data for model
         # SEIR
@@ -135,7 +139,10 @@ class Model:
         self.hospital_ic -= dead
         self.hospital_ic = np.maximum(self.hospital_ic, np.zeros(86))
         # TODO infected -> dead, hospital -> dead
-        ...
+        hospital_dead = hospitalized * self.hospital_death_rate
+        self.dead += hospital_dead
+        self.hospital -= hospital_dead
+        self.hospital_ic = np.maximum(self.hospital_ic, np.zeros(86))
 
     def run(self, days):
         for i in range(days):
