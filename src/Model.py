@@ -11,7 +11,7 @@ class Model:
         self.infectious_rate = infectious_rate
         self.incubation_rate = incubation_rate
         self.recovery_rate = recovery_rate
-        self.hospital_ic_chance = 0.2
+        self.hospital_ic_chance = 0.224
         self.hospital_death_chance = 0.04
         self.ic_death_chance = 0.26
         self.recovery_rate_hospital = (1.0 - self.hospital_ic_chance - self.hospital_death_chance) / 8.0
