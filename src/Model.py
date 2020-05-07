@@ -16,7 +16,7 @@ class Model:
         self.ic_death_chance = 0.26
 
         # recovery rates
-        self.recovery_rate = (1.0 - self.hospital_chance) / 5.0
+        self.recovery_rate = (1.0 - self.hospital_chance) / 6.0
         self.recovery_rate_hospital = (1.0 - self.ic_chance - self.hospital_death_chance) / 8.0
         self.recovery_rate_ic = (1.0 - self.ic_death_chance) / 10.0
 
@@ -25,7 +25,7 @@ class Model:
 
         # rates for hospital / ic / death
         # TODO: ofwel leeftijdsafhankelijke rates, ofwel uitleggen in verslag dat dit moeilijk te vinden is
-        self.hospital_rate = self.hospital_chance / 5.0
+        self.hospital_rate = self.hospital_chance / 6.0
         self.ic_rate = np.full(86, self.ic_chance / 8.0)
         self.death_rate = np.full(86, self.ic_death_chance / 10.0)
         self.hospital_death_rate = np.full(86, self.hospital_death_chance / 8.0)
@@ -34,7 +34,7 @@ class Model:
         self.susceptible = susceptible.astype('float64')
         self.exposed = np.zeros(86)
         self.infected = np.zeros(86)
-        self.infected[45] = 1
+        self.infected[38] = 1
         self.recovered = np.zeros(86)
 
         # Extra Compartments
