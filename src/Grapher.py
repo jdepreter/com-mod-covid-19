@@ -17,56 +17,57 @@ plt.rcParams['animation.ffmpeg_path'] = '/usr/bin/ffmpeg'
 # writer = FFMpegWriter(fps=15, metadata=dict(artist='Me'), bitrate=1800)
 # ani.save("movie.mp4", writer=writer)
 
-class Grapher:
-    def __init__(self, days: int, y: list, labels: list, save=True, display=False):
-        """
-        :param days: days of the simulation
-        :param y: list containing list of y values
-        y = [ ndarray-susceptible, ndarray-infected ... ]
-        """
-        self.days = days
-        self.y = y
-        self.labels = labels
-        self.save = save
-        self.display = display
 
-    def animate(self, name):
-        """
-        Plot the graph
-        :return: nothing
-        """
-        fig = plt.figure()
-        ax = plt.axes()
+def animate(y: list, labels: list, save=False, display=True, y_label='', x_label='Days since fist case', name='test'):
+    """
+    Plot the graph
+    :return: nothing
+    """
+    fig = plt.figure()
+    ax = plt.axes()
 
-        lines = [plt.plot([], [], label=self.labels[_])[0] for _ in range(len(self.y))]  # lines to animate
+    lines = [plt.plot([], [], label=labels[_])[0] for _ in range(len(y))]  # lines to animate
 
-        def init():
-            # init lines
-            for line in lines:
-                line.set_data([], [])
+    def init():
+        # init lines
+        for line in lines:
+            line.set_data([], [])
 
-            return lines  # return everything that must be updated
+        return lines  # return everything that must be updated
 
-        def animate(i):
-            # animate lines
+    def animate(i):
+        # animate lines
 
-            for j, line in enumerate(lines):
-                line.set_data(range(i), self.y[j][:i])
+        for j, line in enumerate(lines):
+            line.set_data(range(i), y[j][:i])
 
-            ax.relim()
-            ax.autoscale_view()
-            return lines, ax  # return everything that must be updated
+        ax.relim()
+        ax.autoscale_view()
+        return lines, ax  # return everything that must be updated
 
-        anim = animation.FuncAnimation(fig, animate, init_func=init,
-                                       frames=len(self.y[0]), interval=100, blit=False)
+    anim = animation.FuncAnimation(fig, animate, init_func=init,
+                                   frames=len(y[0]), interval=100, blit=False)
 
-        # mywriter = animation.FFMpegFileWriter(fps=15, metadata=dict(artist='Me'), bitrate=1800)
-        plt.legend(loc="upper left")
-        if self.save:
-            anim.save('%s/%s.gif' % (img_folder, name), writer='imagemagick', fps=10)
+    # mywriter = animation.FFMpegFileWriter(fps=15, metadata=dict(artist='Me'), bitrate=1800)
+    plt.legend(loc="upper left")
+    plt.xlabel(x_label)
+    plt.ylabel(y_label)
+    if save:
+        anim.save('%s/%s.gif' % (img_folder, name), writer='imagemagick', fps=10)
 
-        if self.display:
-            plt.show()
+    if display:
+        plt.show()
+
+
+def plot(y: list, labels: list, name='temp', y_label=''):
+    plt.clf()
+    for i, line in enumerate(y):
+        plt.plot(line, label=labels[i])
+
+    plt.xlabel('Days since first case')
+    plt.ylabel(y_label)
+    plt.legend()
+    plt.savefig(img_folder + '/' + name)
 
 # Test:
 # days = 10

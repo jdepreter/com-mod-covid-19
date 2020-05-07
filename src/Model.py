@@ -50,6 +50,7 @@ class Model:
 
         # data (for graphing)
         self.infected_data = np.empty(0)
+        self.exposed_data = np.empty(0)
         self.recovered_data = np.empty(0)
         self.hospital_data = np.empty(0)
         self.hospital_total_data = np.empty(0)
@@ -183,6 +184,7 @@ class Model:
 
             # Save data for graphing
             self.infected_data = np.append(self.infected_data, self.infected.sum())
+            self.exposed_data = np.append(self.exposed_data, self.exposed.sum())
             self.recovered_data = np.append(self.recovered_data, self.recovered.sum())
             self.hospital_data = np.append(self.hospital_data, self.hospital.sum())
             self.ic_data = np.append(self.ic_data, self.hospital_ic.sum())

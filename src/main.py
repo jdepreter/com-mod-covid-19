@@ -1,10 +1,11 @@
 from src.CCMatrix import CCMatrix
 from src.Model import Model
-from src.Grapher import Grapher
+from src.Grapher import plot, animate
 import matplotlib.pyplot as plt
 import numpy as np
 import os
 from os.path import dirname, abspath
+
 img_folder = os.path.join(dirname(dirname(abspath(__file__))), 'img')
 
 # Eerste infected persoon beinvloed wss de curve
@@ -182,41 +183,35 @@ def calculate_sum_of_squares(contact_matrix, days, infectious_rate, measure_day,
     return factor + factor_diff, prev_sum_of_squares
 
 
-def plot_model(contact_matrix, susceptible, infectious_rate, days, reference_cases=None, factor=1,
-               measure_factor: float = 1, measure_day=0, reference_hospital=None, offset=0, first_patient_age=38, scenario=None):
-
+def plot_model(contact_matrix, susceptible, infectious_rate, days, reference_cases=None, measure_factor: float = 1,
+               measure_day=0, reference_hospital=None, offset=0, first_patient_age=38, name='model',
+               scenario=None) -> Model:
     model = Model(contact_matrix, susceptible, infectious_rate, measure_factor=measure_factor, measure_day=measure_day,
                   first_patient_age=first_patient_age, scenario=scenario)
     model.run(days)
-    plt.plot(model.infected_data, label='infected')
-    plt.plot(model.hospital_data, label='hospitalized')
-    plt.plot(model.hospital_total_data, label='hospitalized total')
-    plt.plot(model.ic_data, label='intensive care')
-    # plt.plot(model.recovered_data, label='recovered')
-    plt.plot(model.dead_data, label='died')
-    # plt.plot(model.case_data, label='model cases')
-    if reference_cases is not None:
-        plt.plot(reference_cases, label='reference cases')
-    if reference_hospital is not None:
-        plt.plot(np.append(np.zeros(offset), reference_hospital) * factor, label='reference hospital')
-        plt.plot((model.hospital_data + model.ic_data) * factor, label='hospital + ic')
 
-    plt.legend()
-    # plt.show()
+    y = [model.infected_data, model.recovered_data, model.exposed_data, model.hospital_data, model.ic_data,
+         model.dead_data]
+    labels = ['infected', 'recovered', 'exposed', 'hospitalized', 'ic', 'dead']
+    plot(y, labels, name, 'Amount')
+
+    if reference_cases is not None:
+        y = [reference_cases, model.case_data]
+        labels = ['reference cases', 'model cases']
+        plot(y, labels, 'ref_cases', 'Amount')
+
+    if reference_hospital is not None:
+        y = [np.append(np.zeros(offset), reference_hospital), model.hospital_data + model.ic_data]
+        labels = ['reference hospital + ic', 'model hospital + ic']
+        plot(y, labels, 'ref_hospital', 'Amount')
+
     return model
 
 
-def plot(y_1, y_2, label_1, label_2, name='temp', y_label=''):
-    plt.clf()
-    plt.plot(y_1, label=label_1)
-    plt.plot(y_2, label=label_2)
-    plt.xlabel('Days since first case')
-    plt.ylabel(y_label)
-    plt.legend()
-    plt.savefig(img_folder + '/' + name)
-
 def main():
     infectious_rate = .05
+    days = 90
+
     cc = CCMatrix('cc15.csv', 'eurostat_pop_age.csv', 'COVID19BE_HOSP.csv')
     contact_matrix = cc.cc_matrix
 
@@ -230,7 +225,8 @@ def main():
     print('Best fit infectious rate:', infectious_rate)
 
     # Plot with this rate
-    # model = plot_model(cc, infectious_rate=infectious_rate, days=120, reference_cases=reference_cases)
+    # model = plot_model(contact_matrix, cc.belgium_count, infectious_rate=infectious_rate, days=21,
+    #                    reference_cases=reference_cases, first_patient_age=45, name='test')
 
     # measure_day = 37
     # offset, measure_day, factor = find_offset(contact_matrix, cc.belgium_count, cc.belgium_hospital, infectious_rate,
@@ -241,31 +237,74 @@ def main():
     offset = 25
     measure_day = 38
     factor = 0.1
+
     print('Best fit offset', offset, 'Day Measures Introduced', measure_day, 'Factor', factor)
-    model = plot_model(contact_matrix, cc.belgium_count, infectious_rate=infectious_rate, days=120,
+    model = plot_model(contact_matrix, cc.belgium_count, infectious_rate=infectious_rate, days=days,
                        measure_factor=factor, measure_day=measure_day, reference_hospital=cc.belgium_hospital,
                        offset=offset, first_patient_age=45)
     print('Dead people:', model.dead_data[-1])
     print('Hospital people:', model.hospital_total_data[-1])
     print('IC people:', model.ic_data[-1])
 
-    model2 = plot_model(contact_matrix, cc.belgium_count, infectious_rate=infectious_rate, days=120,
-                       measure_factor=factor, measure_day=measure_day, reference_hospital=cc.belgium_hospital,
-                       offset=offset, scenario='party')
-    print('Dead people:', model2.dead_data[-1])
-    print('Hospital people:', model2.hospital_total_data[-1])
-    print('IC people:', model2.ic_data[-1])
+    model_party = plot_model(contact_matrix, cc.belgium_count, infectious_rate=infectious_rate, days=days,
+                             measure_factor=factor, measure_day=measure_day, reference_hospital=cc.belgium_hospital,
+                             offset=offset, scenario='party', first_patient_age=45)
+    print('Dead people:', model_party.dead_data[-1])
+    print('Hospital people:', model_party.hospital_total_data[-1])
+    print('IC people:', model_party.ic_data[-1])
 
-    plot(model.hospital_data, model2.hospital_data, 'Normal', 'Lockdown Parties', 'hospital_diff', 'Hospitalizations')
-    plot(model.ic_data, model2.ic_data, 'Normal', 'Lockdown Parties', 'ic_diff', 'Intensive Care')
-    plot(model.infected_data, model2.infected_data, 'Normal', 'Lockdown Parties', 'infected_diff', 'Infections')
-    plot(model.dead_data, model2.dead_data, 'Normal', 'Lockdown Parties', 'death_diff', 'Dead')
+    plot([model.hospital_data, model_party.hospital_data], ['Normal', 'Lockdown Parties'], 'hospital_diff',
+         'Hospitalizations')
+    plot([model.ic_data, model_party.ic_data], ['Normal', 'Lockdown Parties'], 'ic_diff', 'Intensive Care')
+    plot([model.infected_data, model_party.infected_data], ['Normal', 'Lockdown Parties'], 'infected_diff',
+         'Infections')
+    plot([model.dead_data, model_party.dead_data], ['Normal', 'Lockdown Parties'], 'death_diff', 'Dead')
 
-    # g = Grapher(days, [model.infected_data, model.hospital_data, model.ic_data, model.recovered_data, model.dead_data],
-    #             ["Infected", "Hospital", "IC", "Recovered", "Dead"], display=True, save=True)
-    # g = Grapher(days, [model.infected_data, model.hospital_data, model.ic_data, model.recovered_data, model.dead_data],
-    #             ["Hospital", "IC", "Recovered", "Dead"], display=True, save=True)
-    # g.animate("model")
+    plot([np.append(np.zeros(offset), cc.belgium_hospital), model_party.hospital_data + model_party.ic_data],
+         ["Hospital + IC (parties)", "Reference Hospital + IC"], 'party_hospital_ic_diff', 'Hospitalized')
+
+    # # Uncomment for plots
+    # model_no_lockdown = plot_model(contact_matrix, cc.belgium_count, infectious_rate=infectious_rate, days=days,
+    #                                first_patient_age=45)
+    #
+    # plot([model_no_lockdown.infected_data, model_no_lockdown.hospital_data, model_no_lockdown.ic_data,
+    #       model_no_lockdown.dead_data], ["Infected", "Hospital", "IC", "Dead"],
+    #      name='model_no_lockdown', y_label='Amount')
+    #
+    # plot([model_no_lockdown.infected_data, model.infected_data], ["No lockdown", "Lockdown"],
+    #      name='Infected_lockdown_diff', y_label='Infections')
+    #
+    # plot([model_no_lockdown.hospital_data, model.hospital_data], ["No lockdown", "Lockdown"],
+    #      name='Hospital_lockdown_diff', y_label='Hospitalizations')
+    #
+    # plot([model_no_lockdown.dead_data, model.dead_data], ["No lockdown", "Lockdown"],
+    #      name='Dead_lockdown_diff', y_label='Dead')
+    #
+    # plot([model_no_lockdown.ic_data, model.ic_data], ["No lockdown", "Lockdown"],
+    #      name='IC_lockdown_diff', y_label='Intensive Care')
+    #
+    #
+    # animate([model.infected_data, model.hospital_data, model.ic_data, model.dead_data],
+    #         ["Infected", "Hospital", "IC", "Dead"], display=False, save=True, name='model', y_label='Amount')
+    #
+    # animate([model.infected_data, model.hospital_data, model.ic_data, model.dead_data],
+    #         ["Infected", "Hospital", "IC", "Dead"], display=False, save=True, name='model', y_label='Amount')
+    #
+    # animate([model_no_lockdown.infected_data, model_no_lockdown.hospital_data, model_no_lockdown.ic_data,
+    #          model_no_lockdown.dead_data], ["Infected", "Hospital", "IC", "Dead"], display=False, save=True,
+    #         name='model_no_lockdown', y_label='Amount')
+    #
+    # animate([model_no_lockdown.infected_data, model.infected_data], ["No lockdown", "Lockdown"],
+    #         display=False, save=True, name='Infected_lockdown_diff', y_label='Infections')
+    #
+    # animate([model_no_lockdown.hospital_data, model.hospital_data], ["No lockdown", "Lockdown"],
+    #         display=False, save=True, name='Hospital_lockdown_diff', y_label='Hospitalizations')
+    #
+    # animate([model_no_lockdown.dead_data, model.dead_data], ["No lockdown", "Lockdown"],
+    #         display=False, save=True, name='Dead_lockdown_diff', y_label='Dead')
+    #
+    # animate([model_no_lockdown.ic_data, model.ic_data], ["No lockdown", "Lockdown"],
+    #         display=False, save=True, name='IC_lockdown_diff', y_label='Intensive Care')
 
 
 if __name__ == "__main__":
