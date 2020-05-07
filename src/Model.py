@@ -6,19 +6,27 @@ from scipy import interpolate
 
 
 class Model:
-    def __init__(self, cc, infectious_rate, incubation_rate, recovery_rate):
-        # rates for model
+    def __init__(self, cc, infectious_rate, measures=1.0):
+        # infectious / incubation rate
         self.infectious_rate = infectious_rate
-        self.incubation_rate = incubation_rate
-        self.recovery_rate = recovery_rate
-        self.hospital_ic_chance = 0.224
+        self.incubation_rate = 1.0 / 3.0
+
+        # chances for hospitalization / intensive care / death
+        self.hospital_chance = 0.14
+        self.ic_chance = 0.224
         self.hospital_death_chance = 0.04
         self.ic_death_chance = 0.26
-        self.recovery_rate_hospital = (1.0 - self.hospital_ic_chance - self.hospital_death_chance) / 8.0
-        self.recovery_rate_ic = (1.0 - self.ic_death_chance) / 10.0
-        self.contact_matrix = cc.cc_matrix * infectious_rate
 
-        # extra rates
+        # recovery rates
+        self.recovery_rate = (1.0 - self.hospital_chance) / 6.0
+        self.recovery_rate_hospital = (1.0 - self.ic_chance - self.hospital_death_chance) / 8.0
+        self.recovery_rate_ic = (1.0 - self.ic_death_chance) / 10.0
+
+        # contact matrix (combined with infectious rate and possible measures)
+        self.contact_matrix = cc.cc_matrix * infectious_rate * measures
+
+        # rates for hospital / ic / death
+        # TODO: ofwel leeftijdsafhankelijk rates, ofwel uitleggen in verslag dat dit moeilijk te vinden is
         # interpolate hospital rates
         # nodes = np.array([[0, 0], [2, 0.3], [34, 2.5], [70, 12.2], [80, 15.8], [85, 17.2]])
         # x = nodes[:, 0]
@@ -27,15 +35,12 @@ class Model:
         # xnew = np.arange(0, 86)
         # self.hospital_rate = f(xnew) / 100.0 / 6.0
         self.hospital_rate = 0.14/6.0
-
-        self.hospital_ic_rate = np.full(86, self.hospital_ic_chance / 8.0)
+        self.ic_rate = np.full(86, self.ic_chance / 8.0)
         self.death_rate = np.full(86, self.ic_death_chance / 10.0)
         self.hospital_death_rate = np.full(86, self.hospital_death_chance / 8.0)
 
         # initial data for model
-        # SEIR
         self.susceptible = cc.belgian_italy_count.astype('float64')
-        print(self.susceptible.sum())
         self.exposed = np.zeros(86)
         self.infected = np.zeros(86)
         self.infected[38] = 1
@@ -122,7 +127,7 @@ class Model:
         :param hospitalized: hospitalized people the day before
         :return:
         """
-        ic = hospitalized * self.hospital_ic_rate
+        ic = hospitalized * self.ic_rate
         self.hospital_ic += ic
         self.hospital -= ic
         self.hospital = np.maximum(self.hospital, np.zeros(86))
