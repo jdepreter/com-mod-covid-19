@@ -4,7 +4,8 @@ from scipy import interpolate
 
 
 class Model:
-    def __init__(self, contact_matrix, susceptible, infectious_rate, measure_factor=1.0, measure_day=0):
+    def __init__(self, contact_matrix, susceptible, infectious_rate, measure_factor=1.0, measure_day=0,
+                 scenario='lockdown'):
         # infectious / incubation rate
         self.infectious_rate = infectious_rate
         self.incubation_rate = 1.0 / 3.0
@@ -55,6 +56,7 @@ class Model:
         self.ic_data = np.empty(0)
         self.dead_data = np.empty(0)
         self.case_data = np.empty(0)
+        self.scenario = scenario
 
     def infect(self, susceptible, infected, factor):
         """
@@ -65,7 +67,7 @@ class Model:
         # Normal Contact matrix for infected people
         susceptible_infected = np.matmul(susceptible_transpose, np.asmatrix(infected))
 
-        contacts = np.multiply(self.contact_matrix, susceptible_infected) * factor
+        contacts = np.multiply(np.multiply(self.contact_matrix, susceptible_infected), factor)
         contacts = np.asarray(contacts)
 
         for column in contacts.transpose():
@@ -146,7 +148,7 @@ class Model:
         self.hospital -= hospital_dead
 
     def run(self, days):
-        for i in range(days):
+        for day in range(days):
             # Do not use new data for calculating transitions
             infected = self.infected
             hospital = self.hospital
@@ -154,10 +156,24 @@ class Model:
             ic = self.hospital_ic
 
             # Transitions between compartments
-            if i >= self.measure_day:
-                self.infect(self.susceptible, infected, self.measure_factor)
+            if self.scenario == 'party':
+                if day < self.measure_day - 1:
+                    self.infect(self.susceptible, infected, np.full((86, 86), 1))
+                elif self.measure_day - 1 <= day < self.measure_day:
+                    self.infect(self.susceptible, infected, np.array(
+                        [[2 if 17 < i < 26 and 17 < j < 26 else 1 for i in range(86)] for j in range(86)]))
+                elif self.measure_day <= day <= self.measure_day + 1:
+                    self.infect(self.susceptible, infected, np.array(
+                        [[2 * self.measure_factor if 17 < i < 26 and 17 < j < 26 else self.measure_factor for i in
+                          range(86)] for j in range(86)]))
+                else:
+                    self.infect(self.susceptible, infected, np.full((86, 86), self.measure_factor))
+
             else:
-                self.infect(self.susceptible, infected, 1)
+                if day >= self.measure_day:
+                    self.infect(self.susceptible, infected, np.full((86, 86), self.measure_factor))
+                else:
+                    self.infect(self.susceptible, infected, np.full((86, 86), 1))
             # self.infect(self.susceptible_hospital_staff, infected, 5)
             self.exp_to_inf(exposed)
             self.recover(infected, hospital, ic)

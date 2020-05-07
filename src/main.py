@@ -73,14 +73,16 @@ def find_infectious_rate(contact_matrix, susceptible, start_infectious_rate, ref
 
 
 def find_offset(contact_matrix, susceptible, reference_hospital, infectious_rate, days, start_offset=20,
-                         measure_day=0):
+                measure_day=0):
     prev = float('inf')
     offset = start_offset
-    measure_day, factor, sum_of_squares = find_lockdown_factor(contact_matrix, susceptible, reference_hospital, infectious_rate, days, offset-1,
-                                                       measure_day)
+    measure_day, factor, sum_of_squares = find_lockdown_factor(contact_matrix, susceptible, reference_hospital,
+                                                               infectious_rate, days, offset - 1,
+                                                               measure_day)
 
-    measure_day, factor, sum_of_squares2 = find_lockdown_factor(contact_matrix, susceptible, reference_hospital, infectious_rate, days, offset+1,
-                                                       measure_day)
+    measure_day, factor, sum_of_squares2 = find_lockdown_factor(contact_matrix, susceptible, reference_hospital,
+                                                                infectious_rate, days, offset + 1,
+                                                                measure_day)
     diff = 1
     if sum_of_squares < sum_of_squares2:
         diff = -1
@@ -89,13 +91,15 @@ def find_offset(contact_matrix, susceptible, reference_hospital, infectious_rate
     while sum_of_squares <= prev:
         print(counter, sum_of_squares)
         prev = sum_of_squares
-        measure_day, factor, sum_of_squares = find_lockdown_factor(contact_matrix, susceptible, reference_hospital, infectious_rate,
-                                                       days, offset + counter * diff,
-                                                       measure_day)
+        measure_day, factor, sum_of_squares = find_lockdown_factor(contact_matrix, susceptible, reference_hospital,
+                                                                   infectious_rate,
+                                                                   days, offset + counter * diff,
+                                                                   measure_day)
         counter += 1
     print(factor, measure_day + (counter - 1) * diff, sum_of_squares)
 
-    return offset + (counter-1) * diff, measure_day, factor
+    return offset + (counter - 1) * diff, measure_day, factor
+
 
 def find_lockdown_factor(contact_matrix, susceptible, reference_hospital, infectious_rate, days, offset=20,
                          measure_day=0):
@@ -119,9 +123,9 @@ def find_lockdown_factor(contact_matrix, susceptible, reference_hospital, infect
                                                           measure_day + counter * diff, offset, reference_hospital,
                                                           susceptible)
         counter += 1
-    print("offset:", offset, factor, measure_day + (counter-1)*diff, sum_of_squares)
+    print("offset:", offset, factor, measure_day + (counter - 1) * diff, sum_of_squares)
 
-    return measure_day + (counter-1)*diff, factor, sum_of_squares
+    return measure_day + (counter - 1) * diff, factor, sum_of_squares
 
 
 def calculate_sum_of_squares(contact_matrix, days, infectious_rate, measure_day, offset, reference_hospital,
@@ -176,8 +180,10 @@ def calculate_sum_of_squares(contact_matrix, days, infectious_rate, measure_day,
 
 
 def plot_model(contact_matrix, susceptible, infectious_rate, days, reference_cases=None, factor=1,
-               measure_factor: float = 1, measure_day=0, reference_hospital=None, offset=0):
-    model = Model(contact_matrix, susceptible, infectious_rate, measure_factor=measure_factor, measure_day=measure_day)
+               measure_factor: float = 1, measure_day=0, reference_hospital=None, offset=0, scenario=None):
+
+    model = Model(contact_matrix, susceptible, infectious_rate, measure_factor=measure_factor, measure_day=measure_day,
+                  scenario=scenario)
     model.run(days)
     plt.plot(model.infected_data * factor, label='infected')
     plt.plot(model.hospital_data * factor, label='hospitalized')
@@ -193,7 +199,7 @@ def plot_model(contact_matrix, susceptible, infectious_rate, days, reference_cas
         plt.plot((model.hospital_data + model.ic_data) * factor, label='hospital + ic')
 
     plt.legend()
-    plt.show()
+    # plt.show()
     return model
 
 
@@ -224,11 +230,17 @@ def main():
     factor = 0.101999999
     print('Best fit offset', offset, 'Day Measures Introduced', measure_day, 'Factor', factor)
     model = plot_model(contact_matrix, cc.belgium_count, infectious_rate=infectious_rate, days=120,
-                       measure_factor=factor, measure_day=measure_day, reference_hospital=cc.belgium_hospital, offset=offset)
-
-
+                       measure_factor=factor, measure_day=measure_day, reference_hospital=cc.belgium_hospital,
+                       offset=offset)
     print('Dead people:', model.dead_data[-1])
-    print('Hospital people:', model.hospital_data[-1])
+    print('Hospital people:', model.hospital_total_data[-1])
+    print('IC people:', model.ic_data[-1])
+
+    model = plot_model(contact_matrix, cc.belgium_count, infectious_rate=infectious_rate, days=120,
+                       measure_factor=factor, measure_day=measure_day, reference_hospital=cc.belgium_hospital,
+                       offset=offset, scenario='party')
+    print('Dead people:', model.dead_data[-1])
+    print('Hospital people:', model.hospital_total_data[-1])
     print('IC people:', model.ic_data[-1])
     # g = Grapher(days, [model.infected_data, model.hospital_data, model.ic_data, model.recovered_data, model.dead_data],
     #             ["Infected", "Hospital", "IC", "Recovered", "Dead"], display=True, save=True)
