@@ -179,15 +179,15 @@ def plot_model(contact_matrix, susceptible, infectious_rate, days, reference_cas
                measure_factor: float = 1, measure_day=0, reference_hospital=None, offset=0):
     model = Model(contact_matrix, susceptible, infectious_rate, measure_factor=measure_factor, measure_day=measure_day)
     model.run(days)
-    plt.plot(model.infected_data * factor, label='infected')
-    plt.plot(model.hospital_data * factor, label='hospitalized')
-    plt.plot(model.hospital_total_data * factor, label='hospitalized total')
-    plt.plot(model.ic_data * factor, label='intensive care')
-    # plt.plot(model.recovered_data * factor, label='recovered')
-    plt.plot(model.dead_data * factor, label='died')
-    # plt.plot(model.case_data * factor, label='model cases')
+    plt.plot(model.infected_data, label='infected')
+    plt.plot(model.hospital_data, label='hospitalized')
+    plt.plot(model.hospital_total_data, label='hospitalized total')
+    plt.plot(model.ic_data, label='intensive care')
+    # plt.plot(model.recovered_data, label='recovered')
+    plt.plot(model.dead_data, label='died')
+    # plt.plot(model.case_data, label='model cases')
     if reference_cases is not None:
-        plt.plot(reference_cases * factor, label='reference cases')
+        plt.plot(reference_cases, label='reference cases')
     if reference_hospital is not None:
         plt.plot(np.append(np.zeros(offset), reference_hospital) * factor, label='reference hospital')
         plt.plot((model.hospital_data + model.ic_data) * factor, label='hospital + ic')
