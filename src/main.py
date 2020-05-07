@@ -224,7 +224,7 @@ def main():
     # print("uitkomst", offset, measure_day, factor)
     offset = 25
     measure_day = 38
-    factor = 0.09999999999999994
+    factor = 0.1
     print('Best fit offset', offset, 'Day Measures Introduced', measure_day, 'Factor', factor)
     model = plot_model(contact_matrix, cc.belgium_count, infectious_rate=infectious_rate, days=120,
                        measure_factor=factor, measure_day=measure_day, reference_hospital=cc.belgium_hospital,
