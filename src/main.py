@@ -248,7 +248,7 @@ def main():
 
     model_party = plot_model(contact_matrix, cc.belgium_count, infectious_rate=infectious_rate, days=days,
                              measure_factor=factor, measure_day=measure_day, reference_hospital=cc.belgium_hospital,
-                             offset=offset, scenario='party', first_patient_age=45)
+                             offset=offset, scenario='party', first_patient_age=45, name='model_party')
     print('Dead people:', model_party.dead_data[-1])
     print('Hospital people:', model_party.hospital_total_data[-1])
     print('IC people:', model_party.ic_data[-1])
