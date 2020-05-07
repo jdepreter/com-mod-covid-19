@@ -93,14 +93,16 @@ def main():
     cc = CCMatrix('cc15.csv', 'eurostat_pop_age.csv')
 
     # Data van Italië, we gebruiken hier dag 20 tot 40 (van dag waarop aantal gevallen begint te stijgen tot dag waarop maatregelen genomen zijn)
-    reference_cases = np.array(reference_cases_italy[20:40])
+    # reference_cases = np.array(reference_cases_italy[20:40])
+    # reference_cases = reference_cases/(cc.italy_count.sum()/cc.belgium_count.sum()) # rescale to belgium population
 
     # Find 'best fit' infectious rate and plot a run of the model with this rate
-    infectious_rate = find_infectious_rate(cc, infectious_rate, reference_cases)
-    print('Best fit infectious rate:', infectious_rate, '\b, using 0.027')
+    # infectious_rate = find_infectious_rate(cc, infectious_rate, reference_cases)
+    # print('Best fit infectious rate:', infectious_rate)
 
-    # Plot with a slightly higher rate, seems to be slightly more accurate
-    model = plot_model(cc, infectious_rate=infectious_rate, days=120, reference_cases=reference_cases)
+    # Plot with this rate
+    # model = plot_model(cc, infectious_rate=infectious_rate, days=120, reference_cases=reference_cases)
+    model = plot_model(cc, infectious_rate=0.109, days=200)
 
 
     print('Dead people:', model.dead_data[-1])

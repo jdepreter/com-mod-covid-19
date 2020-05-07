@@ -5,13 +5,13 @@ from scipy import interpolate
 
 
 class Model:
-    def __init__(self, cc, infectious_rate, measure_factor=1.0, measure_day=0):
+    def __init__(self, cc, infectious_rate, measure_factor=0.20, measure_day=36):
         # infectious / incubation rate
         self.infectious_rate = infectious_rate
         self.incubation_rate = 1.0 / 3.0
 
         # chances for hospitalization / intensive care / death
-        self.hospital_chance = 0.14
+        self.hospital_chance = 0.19
         self.ic_chance = 0.224
         self.hospital_death_chance = 0.04
         self.ic_death_chance = 0.26
@@ -26,16 +26,16 @@ class Model:
 
         # rates for hospital / ic / death
         # TODO: ofwel leeftijdsafhankelijke rates, ofwel uitleggen in verslag dat dit moeilijk te vinden is
-        self.hospital_rate = 0.14/6.0
+        self.hospital_rate = self.hospital_chance / 6.0
         self.ic_rate = np.full(86, self.ic_chance / 8.0)
         self.death_rate = np.full(86, self.ic_death_chance / 10.0)
         self.hospital_death_rate = np.full(86, self.hospital_death_chance / 8.0)
 
         # initial data for model
-        self.susceptible = cc.belgian_italy_count.astype('float64')
+        self.susceptible = cc.belgium_count.astype('float64')
         self.exposed = np.zeros(86)
         self.infected = np.zeros(86)
-        self.infected[38] = 1
+        self.infected[45] = 1
         self.recovered = np.zeros(86)
 
         # Extra Compartments
