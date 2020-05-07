@@ -3,6 +3,9 @@ from src.Model import Model
 from src.Grapher import Grapher
 import matplotlib.pyplot as plt
 import numpy as np
+import os
+from os.path import dirname, abspath
+img_folder = os.path.join(dirname(dirname(abspath(__file__))), 'img')
 
 # Eerste infected persoon beinvloed wss de curve
 
@@ -203,6 +206,15 @@ def plot_model(contact_matrix, susceptible, infectious_rate, days, reference_cas
     return model
 
 
+def plot(y_1, y_2, label_1, label_2, name='temp', y_label=''):
+    plt.clf()
+    plt.plot(y_1, label=label_1)
+    plt.plot(y_2, label=label_2)
+    plt.xlabel('Days since first case')
+    plt.ylabel(y_label)
+    plt.legend()
+    plt.savefig(img_folder + '/' + name)
+
 def main():
     infectious_rate = .05
     cc = CCMatrix('cc15.csv', 'eurostat_pop_age.csv', 'COVID19BE_HOSP.csv')
@@ -236,12 +248,18 @@ def main():
     print('Hospital people:', model.hospital_total_data[-1])
     print('IC people:', model.ic_data[-1])
 
-    model = plot_model(contact_matrix, cc.belgium_count, infectious_rate=infectious_rate, days=120,
+    model2 = plot_model(contact_matrix, cc.belgium_count, infectious_rate=infectious_rate, days=120,
                        measure_factor=factor, measure_day=measure_day, reference_hospital=cc.belgium_hospital,
                        offset=offset, scenario='party')
-    print('Dead people:', model.dead_data[-1])
-    print('Hospital people:', model.hospital_total_data[-1])
-    print('IC people:', model.ic_data[-1])
+    print('Dead people:', model2.dead_data[-1])
+    print('Hospital people:', model2.hospital_total_data[-1])
+    print('IC people:', model2.ic_data[-1])
+
+    plot(model.hospital_data, model2.hospital_data, 'Normal', 'Lockdown Parties', 'hospital_diff', 'Hospitalizations')
+    plot(model.ic_data, model2.ic_data, 'Normal', 'Lockdown Parties', 'ic_diff', 'Intensive Care')
+    plot(model.infected_data, model2.infected_data, 'Normal', 'Lockdown Parties', 'infected_diff', 'Infections')
+    plot(model.dead_data, model2.dead_data, 'Normal', 'Lockdown Parties', 'death_diff', 'Dead')
+
     # g = Grapher(days, [model.infected_data, model.hospital_data, model.ic_data, model.recovered_data, model.dead_data],
     #             ["Infected", "Hospital", "IC", "Recovered", "Dead"], display=True, save=True)
     # g = Grapher(days, [model.infected_data, model.hospital_data, model.ic_data, model.recovered_data, model.dead_data],

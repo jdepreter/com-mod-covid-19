@@ -1,7 +1,9 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
-
+import os
+from os.path import dirname, abspath
+img_folder = os.path.join(dirname(dirname(abspath(__file__))), 'img')
 plt.rcParams['animation.ffmpeg_path'] = '/usr/bin/ffmpeg'
 
 
@@ -61,7 +63,7 @@ class Grapher:
         # mywriter = animation.FFMpegFileWriter(fps=15, metadata=dict(artist='Me'), bitrate=1800)
         plt.legend(loc="upper left")
         if self.save:
-            anim.save('{}.gif'.format(name), writer='imagemagick', fps=10)
+            anim.save('%s/%s.gif' % (img_folder, name), writer='imagemagick', fps=10)
 
         if self.display:
             plt.show()
