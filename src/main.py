@@ -7,17 +7,29 @@ import numpy as np
 # Eerste infected persoon beinvloed wss de curve
 # TODO: optimale infectious_rate bepalen a.d.h.v. optimal fit met data van Italie
 
+reference_cases_italy = [0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 20, 62,
+                      155, 229, 322, 453, 655, 888, 1128,
+                      1694, 2036, 2502, 3089, 3858, 4636, 5883, 7375, 9172, 10149, 12462, 12462, 17660, 21157, 24747,
+                      27980, 31506,
+                      35713, 41035, 47021, 53578, 59138, 63927, 69176, 74386, 80589, 86498, 92472, 97689, 101739,
+                      105792, 110574,
+                      115242, 119827, 124632, 128948, 132547, 135586, 139422, 143626, 147577, 152271, 156363, 159516,
+                      162488, 165155,
+                      168941, 172434, 175925, 178972, 181228, 183957, 187327, 189973, 192994, 195351, 197675, 199414,
+                      201505, 203591,
+                      205463, 207428, 209328, 210717]
 
-def optimal_fit(reference_infected, infectious_rate, incubation_rate, recovery_rate, cc, num_days):
+
+def optimal_fit(reference_infected, infectious_rate, cc, num_days):
     # initial model, do once with higher infectious rate, once with lower, continue with best fit
     inf_rate_diff = 0.001
-    model = Model(cc, infectious_rate + inf_rate_diff, incubation_rate, recovery_rate)
+    model = Model(cc, infectious_rate + inf_rate_diff)
     model.run(num_days)
     residual = np.absolute(model.case_data - reference_infected)
     pos_sum_of_squares = np.sum(residual ** 2)
 
     inf_rate_diff = -0.001
-    model = Model(cc, infectious_rate + inf_rate_diff, incubation_rate, recovery_rate)
+    model = Model(cc, infectious_rate + inf_rate_diff)
     model.run(num_days)
     residual = np.absolute(model.case_data - reference_infected)
     neg_sum_of_squares = np.sum(residual ** 2)
@@ -27,8 +39,7 @@ def optimal_fit(reference_infected, infectious_rate, incubation_rate, recovery_r
         prev_sum_of_squares = neg_sum_of_squares
         while True:
             infectious_rate -= 0.001
-            print(infectious_rate)
-            model = Model(cc, infectious_rate, incubation_rate, recovery_rate)
+            model = Model(cc, infectious_rate)
             model.run(num_days)
             residual = np.absolute(model.case_data - reference_infected)
             sum_of_squares = np.sum(residual ** 2)
@@ -41,8 +52,7 @@ def optimal_fit(reference_infected, infectious_rate, incubation_rate, recovery_r
         prev_sum_of_squares = pos_sum_of_squares
         while True:
             infectious_rate += 0.001
-            print(infectious_rate)
-            model = Model(cc, infectious_rate, incubation_rate, recovery_rate)
+            model = Model(cc, infectious_rate)
             model.run(num_days)
             residual = np.absolute(model.case_data - reference_infected)
             sum_of_squares = np.sum(residual ** 2)
@@ -53,38 +63,48 @@ def optimal_fit(reference_infected, infectious_rate, incubation_rate, recovery_r
     return infectious_rate
 
 
-def main():
-    infectious_rate = 0.05
-    incubation_rate = 1.0 / 3.0  # incubation period of 3 days
-    recovery_rate = 1.0 / 6.0  # infectious period of 6 days
-    cc = CCMatrix('cc15.csv', 'eurostat_pop_age.csv')
+def find_infectious_rate(cc, start_infectious_rate, reference_cases):
+    infectious_rate = optimal_fit(reference_cases, start_infectious_rate, cc, 20)
 
-    reference_data = [0,0,0,0,0,0,0,0,0,2,2,2,2,2,2,2,3,3,3,3,3,3,3,3,3,3,3,3,3,3,20,62,155,229,322,453,655,888,1128,
-                       1694,2036,2502,3089,3858,4636,5883,7375,9172,10149,12462,12462,17660,21157,24747,27980,31506,
-                       35713,41035,47021,53578,59138,63927,69176,74386,80589,86498,92472,97689,101739,105792,110574,
-                       115242,119827,124632,128948,132547,135586,139422,143626,147577,152271,156363,159516,162488,165155,
-                       168941,172434,175925,178972,181228,183957,187327,189973,192994,195351,197675,199414,201505,203591,
-                       205463,207428,209328,210717][20:40]
+    # # Plot with this infectious rate
+    # plot_model(cc, infectious_rate, 20, reference_cases)
 
-    reference_cases = np.array(reference_data)
+    return infectious_rate
 
-    infectious_rate = optimal_fit(reference_cases, infectious_rate, incubation_rate, recovery_rate, cc, 20)
 
-    model = Model(cc, infectious_rate, incubation_rate, recovery_rate)
-    days = 130
+def plot_model(cc, infectious_rate, days, reference_cases=None):
+    model = Model(cc, infectious_rate)
     model.run(days)
-
-    # plt.plot(model.infected_data, label='Model infected')
+    plt.plot(model.infected_data, label='infected')
     plt.plot(model.hospital_data, label='hospitalized')
     plt.plot(model.hospital_total_data, label='hospitalized total')
     plt.plot(model.ic_data, label='intensive care')
-    # plt.plot(model.recovered_data, label='Model recovered')
+    # plt.plot(model.recovered_data, label='recovered')
     plt.plot(model.dead_data, label='died')
-    # plt.plot(model.case_data, label='Model cases')
-    # plt.plot(reference_cases, label='Reference cases')
+    # plt.plot(model.case_data, label='model cases')
+    if reference_cases is not None:
+        plt.plot(reference_cases, label='reference cases')
     plt.legend()
     plt.show()
-    print(model.dead_data[-1])
+    return model
+
+
+def main():
+    infectious_rate = .05
+    cc = CCMatrix('cc15.csv', 'eurostat_pop_age.csv')
+
+    # Data van Italië, we gebruiken hier dag 20 tot 40 (van dag waarop aantal gevallen begint te stijgen tot dag waarop maatregelen genomen zijn)
+    reference_cases = np.array(reference_cases_italy[20:40])
+
+    # Find 'best fit' infectious rate and plot a run of the model with this rate
+    infectious_rate = find_infectious_rate(cc, infectious_rate, reference_cases)
+    print('Best fit infectious rate:', infectious_rate, '\b, using 0.027')
+
+    # Plot with a slightly higher rate, seems to be slightly more accurate
+    model = plot_model(cc, infectious_rate=infectious_rate, days=120, reference_cases=reference_cases)
+
+
+    print('Dead people:', model.dead_data[-1])
     # g = Grapher(days, [model.infected_data, model.hospital_data, model.ic_data, model.recovered_data, model.dead_data],
     #             ["Infected", "Hospital", "IC", "Recovered", "Dead"], display=True, save=True)
     # g = Grapher(days, [model.infected_data, model.hospital_data, model.ic_data, model.recovered_data, model.dead_data],
