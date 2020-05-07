@@ -5,7 +5,7 @@ import os
 
 
 class CCMatrix:
-    def __init__(self, matrix_csv, ages_csv):
+    def __init__(self, matrix_csv, ages_csv, hospital_csv):
         data_folder = os.path.join(dirname(dirname(abspath(__file__))), 'data')
 
         # Contact Matrix
@@ -28,10 +28,16 @@ class CCMatrix:
         self.belgium_distribution = self.belgium_count/self.belgium_count.sum()
         self.italy_distribution = self.italy_count/self.italy_count.sum()
         self.belgian_italy_count = self.belgium_distribution/self.italy_distribution*self.italy_count
+        self.belgium_italy_factor = self.belgium_count.sum() / self.italy_count.sum()
         self.italic_belgium_count = self.italy_distribution/self.belgium_distribution*self.belgium_count
 
         print('cc matrix with size', self.cc_matrix.size, 'inserted')
         print('age array with size', self.belgium_count.size, 'inserted')
+
+        # Contact Matrix
+        hospital_csv = os.path.join(data_folder, hospital_csv)
+        df = pd.read_csv(hospital_csv, delimiter=',')
+        self.belgium_hospital = df.groupby(["DATE"]).sum().to_numpy()[:, 1]
 
 
 # c = CCMatrix('cc15.csv', 'eurostat_pop_age.csv')

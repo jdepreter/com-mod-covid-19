@@ -3,9 +3,8 @@ import numpy as np
 from scipy import interpolate
 
 
-
 class Model:
-    def __init__(self, cc, infectious_rate, measure_factor=0.20, measure_day=36):
+    def __init__(self, contact_matrix, susceptible, infectious_rate, measure_factor=1.0, measure_day=0):
         # infectious / incubation rate
         self.infectious_rate = infectious_rate
         self.incubation_rate = 1.0 / 3.0
@@ -17,22 +16,22 @@ class Model:
         self.ic_death_chance = 0.26
 
         # recovery rates
-        self.recovery_rate = (1.0 - self.hospital_chance) / 6.0
+        self.recovery_rate = (1.0 - self.hospital_chance) / 5.0
         self.recovery_rate_hospital = (1.0 - self.ic_chance - self.hospital_death_chance) / 8.0
         self.recovery_rate_ic = (1.0 - self.ic_death_chance) / 10.0
 
         # contact matrix (combined with infectious rate and possible measures)
-        self.contact_matrix = cc.cc_matrix * infectious_rate
+        self.contact_matrix = contact_matrix * infectious_rate
 
         # rates for hospital / ic / death
         # TODO: ofwel leeftijdsafhankelijke rates, ofwel uitleggen in verslag dat dit moeilijk te vinden is
-        self.hospital_rate = self.hospital_chance / 6.0
+        self.hospital_rate = self.hospital_chance / 5.0
         self.ic_rate = np.full(86, self.ic_chance / 8.0)
         self.death_rate = np.full(86, self.ic_death_chance / 10.0)
         self.hospital_death_rate = np.full(86, self.hospital_death_chance / 8.0)
 
         # initial data for model
-        self.susceptible = cc.belgium_count.astype('float64')
+        self.susceptible = susceptible.astype('float64')
         self.exposed = np.zeros(86)
         self.infected = np.zeros(86)
         self.infected[45] = 1
@@ -76,7 +75,7 @@ class Model:
         self.susceptible = np.maximum(self.susceptible, np.zeros(86))
 
     def exp_to_inf(self, exposed):
-        exp_to_inf = self.incubation_rate*exposed
+        exp_to_inf = self.incubation_rate * exposed
         self.infected += exp_to_inf
         self.exposed -= exp_to_inf
 
