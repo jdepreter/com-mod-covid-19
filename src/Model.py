@@ -4,7 +4,7 @@ from scipy import interpolate
 
 
 class Model:
-    def __init__(self, contact_matrix, susceptible, infectious_rate, measure_factor=1.0, measure_day=0):
+    def __init__(self, contact_matrix, susceptible, infectious_rate, measure_factor=1.0, measure_day=0, first_patient_age=38):
         # infectious / incubation rate
         self.infectious_rate = infectious_rate
         self.incubation_rate = 1.0 / 3.0
@@ -34,7 +34,7 @@ class Model:
         self.susceptible = susceptible.astype('float64')
         self.exposed = np.zeros(86)
         self.infected = np.zeros(86)
-        self.infected[38] = 1
+        self.infected[first_patient_age] = 1
         self.recovered = np.zeros(86)
 
         # Extra Compartments
