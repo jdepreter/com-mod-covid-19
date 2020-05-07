@@ -5,7 +5,6 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 # Eerste infected persoon beinvloed wss de curve
-# TODO: optimale infectious_rate bepalen a.d.h.v. optimal fit met data van Italie
 
 reference_cases_italy = [0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 20, 62,
                       155, 229, 322, 453, 655, 888, 1128,

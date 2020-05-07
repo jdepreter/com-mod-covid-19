@@ -2,11 +2,10 @@ from src.CCMatrix import CCMatrix
 import numpy as np
 from scipy import interpolate
 
-# TODO: alle rates optimaliseren adhv data
 
 
 class Model:
-    def __init__(self, cc, infectious_rate, measures=1.0):
+    def __init__(self, cc, infectious_rate, measure_factor=1.0, measure_day=0):
         # infectious / incubation rate
         self.infectious_rate = infectious_rate
         self.incubation_rate = 1.0 / 3.0
@@ -23,17 +22,10 @@ class Model:
         self.recovery_rate_ic = (1.0 - self.ic_death_chance) / 10.0
 
         # contact matrix (combined with infectious rate and possible measures)
-        self.contact_matrix = cc.cc_matrix * infectious_rate * measures
+        self.contact_matrix = cc.cc_matrix * infectious_rate
 
         # rates for hospital / ic / death
-        # TODO: ofwel leeftijdsafhankelijk rates, ofwel uitleggen in verslag dat dit moeilijk te vinden is
-        # interpolate hospital rates
-        # nodes = np.array([[0, 0], [2, 0.3], [34, 2.5], [70, 12.2], [80, 15.8], [85, 17.2]])
-        # x = nodes[:, 0]
-        # y = nodes[:, 1]
-        # f = interpolate.interp1d(x, y)
-        # xnew = np.arange(0, 86)
-        # self.hospital_rate = f(xnew) / 100.0 / 6.0
+        # TODO: ofwel leeftijdsafhankelijke rates, ofwel uitleggen in verslag dat dit moeilijk te vinden is
         self.hospital_rate = 0.14/6.0
         self.ic_rate = np.full(86, self.ic_chance / 8.0)
         self.death_rate = np.full(86, self.ic_death_chance / 10.0)
@@ -47,12 +39,14 @@ class Model:
         self.recovered = np.zeros(86)
 
         # Extra Compartments
-        # self.susceptible_hospital_staff = np.append(np.zeros(21), np.append(np.full(45, 3600), np.zeros(20)))
-        # self.susceptible -= self.susceptible_hospital_staff
         self.hospital = np.zeros(86)
         self.hospital_total = np.zeros(86)
         self.hospital_ic = np.zeros(86)
         self.dead = np.zeros(86)
+
+        # measures
+        self.measure_factor = measure_factor
+        self.measure_day = measure_day
 
         # data (for graphing)
         self.infected_data = np.empty(0)
@@ -133,24 +127,24 @@ class Model:
         self.hospital = np.maximum(self.hospital, np.zeros(86))
         ...
 
-    def die(self, infected, hospitalized, ic):
+    def die(self, hospitalized, ic):
         """
-        From infected, hospitalized, ic to Death
+        From hospitalized and ic to Death
         :param infected: infected people (not in hospital / ic)
         :param hospitalized: people in hospital (not in ic)
         :param ic: people in ic
         :return:
         """
-        dead = ic * self.death_rate
+        # icu dead
         # TODO: 7300 ICU bedden, daarna met zeer hoge kans laten dood gaan
+        dead = ic * self.death_rate
         self.dead += dead
         self.hospital_ic -= dead
-        self.hospital_ic = np.maximum(self.hospital_ic, np.zeros(86))
-        # TODO infected -> dead, hospital -> dead
+
+        # hospital dead
         hospital_dead = hospitalized * self.hospital_death_rate
         self.dead += hospital_dead
         self.hospital -= hospital_dead
-        self.hospital_ic = np.maximum(self.hospital_ic, np.zeros(86))
 
     def run(self, days):
         for i in range(days):
@@ -161,13 +155,16 @@ class Model:
             ic = self.hospital_ic
 
             # Transitions between compartments
-            self.infect(self.susceptible, infected, 1)
+            if i >= self.measure_day:
+                self.infect(self.susceptible, infected, self.measure_factor)
+            else:
+                self.infect(self.susceptible, infected, 1)
             # self.infect(self.susceptible_hospital_staff, infected, 5)
             self.exp_to_inf(exposed)
             self.recover(infected, hospital, ic)
             self.go_to_hospital(infected)
             self.go_to_ic(hospital)
-            self.die(infected, hospital, ic)
+            self.die(hospital, ic)
 
             # Save data for graphing
             self.infected_data = np.append(self.infected_data, self.infected.sum())
