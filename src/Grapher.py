@@ -18,7 +18,7 @@ plt.rcParams['animation.ffmpeg_path'] = '/usr/bin/ffmpeg'
 # ani.save("movie.mp4", writer=writer)
 
 
-def animate(y: list, labels: list, save=False, display=True, y_label='', x_label='Days since fist case', name='test'):
+def animate(y: list, labels: list, save=False, display=True, y_label='', x_label='Days since first case', name='test'):
     """
     Plot the graph
     :return: nothing

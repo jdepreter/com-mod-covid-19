@@ -5,7 +5,7 @@ from scipy import interpolate
 
 class Model:
     def __init__(self, contact_matrix, susceptible, infectious_rate, measure_factor=1.0, measure_day=0,
-                 scenario=None, first_patient_age=38):
+                 scenario=None, first_patient_age=38, cap_ic=False):
         # infectious / incubation rate
         self.infectious_rate = infectious_rate
         self.incubation_rate = 1.0 / 3.0
@@ -15,21 +15,23 @@ class Model:
         self.ic_chance = 0.224
         self.hospital_death_chance = 0.04
         self.ic_death_chance = 0.26
+        self.ic_no_bed_death_chance = 0.99
 
         # recovery rates
         self.recovery_rate = (1.0 - self.hospital_chance) / 6.0
         self.recovery_rate_hospital = (1.0 - self.ic_chance - self.hospital_death_chance) / 8.0
         self.recovery_rate_ic = (1.0 - self.ic_death_chance) / 10.0
+        self.recovery_rate_ic_no_bed = (1.0 - self.ic_no_bed_death_chance) / 10.0
 
         # contact matrix (combined with infectious rate and possible measures)
         self.contact_matrix = contact_matrix * infectious_rate
 
         # rates for hospital / ic / death
-        # TODO: ofwel leeftijdsafhankelijke rates, ofwel uitleggen in verslag dat dit moeilijk te vinden is
         self.hospital_rate = self.hospital_chance / 6.0
         self.ic_rate = np.full(86, self.ic_chance / 8.0)
         self.death_rate = np.full(86, self.ic_death_chance / 10.0)
         self.hospital_death_rate = np.full(86, self.hospital_death_chance / 8.0)
+        self.ic_no_bed_death_rate = np.full(86, self.ic_no_bed_death_chance / 10.0)
 
         # initial data for model
         self.susceptible = susceptible.astype('float64')
@@ -47,6 +49,10 @@ class Model:
         # measures
         self.measure_factor = measure_factor
         self.measure_day = measure_day
+
+        # icu capacity (3000, 75 for each age below 40)
+        self.ic_capacity = np.array([75 if i < 40 else 0 for i in range(86)])
+        self.cap_ic = cap_ic
 
         # data (for graphing)
         self.infected_data = np.empty(0)
@@ -100,7 +106,14 @@ class Model:
         self.hospital -= recoveries
         self.hospital = np.maximum(self.hospital, np.zeros(86))
 
+        # ic recovery rate is lower when
         recoveries = ic * self.recovery_rate_ic
+        if self.cap_ic:
+            ic_no_bed = np.maximum(ic - self.ic_capacity, np.zeros(86))
+            # if icu capacity is exceeded, let people without a bed recover at a low rate
+            if ic_no_bed.sum() > 0:
+                recoveries = self.ic_capacity * self.recovery_rate_ic
+                recoveries += ic_no_bed * self.recovery_rate_ic_no_bed
         self.recovered += recoveries
         self.hospital_ic -= recoveries
         self.hospital_ic = np.maximum(self.hospital_ic, np.zeros(86))
@@ -138,8 +151,13 @@ class Model:
         :return:
         """
         # icu dead
-        # TODO: 7300 ICU bedden, daarna met zeer hoge kans laten dood gaan
         dead = ic * self.death_rate
+        if self.cap_ic:
+            ic_no_bed = np.maximum(ic - self.ic_capacity, np.zeros(86))
+            # if icu capacity is exceeded, let people without a bed die with at a high rate
+            if ic_no_bed.sum() > 0:
+                dead = self.ic_capacity * self.death_rate
+                dead += ic_no_bed * self.ic_no_bed_death_rate
         self.dead += dead
         self.hospital_ic -= dead
 
