@@ -66,6 +66,7 @@ def plot(y: list, labels: list, name='temp', y_label=''):
 
     plt.xlabel('Days since first case')
     plt.ylabel(y_label)
+    plt.title(name, pad=15)
     plt.legend()
     plt.savefig(img_folder + '/' + name)
 
