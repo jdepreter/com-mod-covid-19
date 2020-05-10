@@ -210,7 +210,7 @@ def plot_model(contact_matrix, susceptible, infectious_rate, days, reference_cas
 
 def main():
     infectious_rate = .05
-    days = 120
+    days = 150
 
     cc = CCMatrix('cc15.csv', 'eurostat_pop_age.csv', 'COVID19BE_HOSP.csv')
     contact_matrix = cc.cc_matrix
@@ -288,32 +288,32 @@ def main():
     print('IC people:', model_no_lockdown.ic_data[-1])
 
     # Uncomment for plots (icu cap)
-    model_no_lockdown = plot_model(contact_matrix, cc.belgium_count, infectious_rate=infectious_rate, days=days,
+    model_no_lockdown_cap_ic = plot_model(contact_matrix, cc.belgium_count, infectious_rate=infectious_rate, days=days,
                                    first_patient_age=45, cap_ic=True)
 
-    plot([model_no_lockdown.infected_data, model_no_lockdown.hospital_data, model_no_lockdown.ic_data,
-          model_no_lockdown.dead_data, model_no_lockdown.ic_overflow_data], ["Infected", "Hospital", "IC", "Dead", "IC Overflow"],
+    plot([model_no_lockdown_cap_ic.infected_data, model_no_lockdown_cap_ic.hospital_data, model_no_lockdown_cap_ic.ic_data,
+          model_no_lockdown_cap_ic.dead_data, model_no_lockdown_cap_ic.ic_overflow_data], ["Infected", "Hospital", "IC", "Dead", "IC Overflow"],
          name='model_no_lockdown-cap-ic', y_label='Amount')
 
     # plot([model_no_lockdown.ic_data, model_no_lockdown.ic_overflow_data],
     #      ["IC", "IC Overflow"],
     #      name='model_no_lockdown-cap-ic', y_label='Amount')
 
-    plot([model_no_lockdown.infected_data, model.infected_data], ["No lockdown", "Lockdown"],
+    plot([model_no_lockdown_cap_ic.infected_data, model_no_lockdown.infected_data], ["No lockdown (IC overflow)", "No lockdown"],
          name='Infected_lockdown_diff-cap-ic', y_label='Infections')
 
-    plot([model_no_lockdown.hospital_data, model.hospital_data], ["No lockdown", "Lockdown"],
+    plot([model_no_lockdown_cap_ic.hospital_data, model_no_lockdown.hospital_data], ["No lockdown (IC overflow)", "No lockdown"],
          name='Hospital_lockdown_diff-cap-ic', y_label='Hospitalizations')
 
-    plot([model_no_lockdown.dead_data, model.dead_data], ["No lockdown", "Lockdown"],
+    plot([model_no_lockdown_cap_ic.dead_data, model_no_lockdown.dead_data], ["No lockdown (IC overflow)", "No lockdown"],
          name='Dead_lockdown_diff-cap-ic', y_label='Dead')
 
-    plot([model_no_lockdown.ic_data, model.ic_data], ["No lockdown", "Lockdown"],
+    plot([model_no_lockdown_cap_ic.ic_data, model_no_lockdown.ic_data], ["No lockdown (IC overflow)", "No lockdown"],
          name='IC_lockdown_diff-cap-ic', y_label='Intensive Care')
 
-    print('Dead people:', model_no_lockdown.dead_data[-1])
-    print('Hospital people:', model_no_lockdown.hospital_total_data[-1])
-    print('IC people:', model_no_lockdown.ic_data[-1])
+    print('Dead people:', model_no_lockdown_cap_ic.dead_data[-1])
+    print('Hospital people:', model_no_lockdown_cap_ic.hospital_total_data[-1])
+    print('IC people:', model_no_lockdown_cap_ic.ic_data[-1])
 
     # gifs
     # animate([model.infected_data, model.hospital_data, model.ic_data, model.dead_data],
