@@ -18,7 +18,7 @@ plt.rcParams['animation.ffmpeg_path'] = '/usr/bin/ffmpeg'
 # ani.save("movie.mp4", writer=writer)
 
 
-def animate(y: list, labels: list, save=False, display=True, y_label='', x_label='Days since first case', name='test'):
+def animate(y: list, labels: list, save=False, display=True, y_label='', x_label='Days since first case', name='test', title=''):
     """
     Plot the graph
     :return: nothing
@@ -52,6 +52,7 @@ def animate(y: list, labels: list, save=False, display=True, y_label='', x_label
     plt.legend(loc="upper left")
     plt.xlabel(x_label)
     plt.ylabel(y_label)
+    plt.title(title, pad=15)
     if save:
         anim.save('%s/%s.gif' % (img_folder, name), writer='imagemagick', fps=10)
 
@@ -59,14 +60,14 @@ def animate(y: list, labels: list, save=False, display=True, y_label='', x_label
         plt.show()
 
 
-def plot(y: list, labels: list, name='temp', y_label=''):
+def plot(y: list, labels: list, name='temp', y_label='', title=''):
     plt.clf()
     for i, line in enumerate(y):
         plt.plot(line, label=labels[i])
 
     plt.xlabel('Days since first case')
     plt.ylabel(y_label)
-    plt.title(name, pad=15)
+    plt.title(title, pad=15)
     plt.legend()
     plt.savefig(img_folder + '/' + name)
 

@@ -185,7 +185,7 @@ def calculate_sum_of_squares(contact_matrix, days, infectious_rate, measure_day,
 
 def plot_model(contact_matrix, susceptible, infectious_rate, days, reference_cases=None, measure_factor: float = 1,
                measure_day=0, reference_hospital=None, offset=0, first_patient_age=38, name='model',
-               scenario=None, cap_ic=False) -> Model:
+               scenario=None, cap_ic=False, title='') -> Model:
     model = Model(contact_matrix, susceptible, infectious_rate, measure_factor=measure_factor, measure_day=measure_day,
                   first_patient_age=first_patient_age, scenario=scenario, cap_ic=cap_ic)
     model.run(days)
@@ -193,17 +193,17 @@ def plot_model(contact_matrix, susceptible, infectious_rate, days, reference_cas
     y = [model.infected_data, model.recovered_data, model.exposed_data, model.hospital_data, model.ic_data,
          model.dead_data]
     labels = ['infected', 'recovered', 'exposed', 'hospitalized', 'ic', 'dead']
-    plot(y, labels, name, 'Amount')
+    plot(y, labels, name, 'Amount', title=title)
 
     if reference_cases is not None:
         y = [reference_cases, model.case_data]
-        labels = ['reference cases', 'model cases']
-        plot(y, labels, 'ref_cases', 'Amount')
+        labels = ['Reference Cases', 'Model Cases']
+        plot(y, labels, 'ref_cases', 'Amount', title='Verschil model werkelijkheid')
 
     if reference_hospital is not None:
         y = [np.append(np.zeros(offset), reference_hospital), model.hospital_data + model.ic_data]
-        labels = ['reference hospital + ic', 'model hospital + ic']
-        plot(y, labels, 'ref_hospital', 'Amount')
+        labels = ['Reference Hospital + ic', 'Model Hospital + ic']
+        plot(y, labels, 'ref_hospital', 'Amount', title='Verschil model werkelijkheid')
 
     return model
 
@@ -241,47 +241,47 @@ def main():
     print('Best fit offset', offset, 'Day Measures Introduced', measure_day, 'Factor', factor)
     model = plot_model(contact_matrix, cc.belgium_count, infectious_rate=infectious_rate, days=days,
                        measure_factor=factor, measure_day=measure_day, reference_hospital=cc.belgium_hospital,
-                       offset=offset, first_patient_age=45)
+                       offset=offset, first_patient_age=45, title="Model België")
     print('Dead people:', model.dead_data[-1])
     print('Hospital people:', model.hospital_total_data[-1])
     print('IC people:', model.ic_data[-1])
 
     model_party = plot_model(contact_matrix, cc.belgium_count, infectious_rate=infectious_rate, days=days,
                              measure_factor=factor, measure_day=measure_day, reference_hospital=cc.belgium_hospital,
-                             offset=offset, scenario='party', first_patient_age=45, name='model_party')
+                             offset=offset, scenario='party', first_patient_age=45, name='model_party', title='Model België met lockdown parties')
     print('Dead people:', model_party.dead_data[-1])
     print('Hospital people:', model_party.hospital_total_data[-1])
     print('IC people:', model_party.ic_data[-1])
 
     plot([model.hospital_data, model_party.hospital_data], ['Normal', 'Lockdown Parties'], 'hospital_diff',
-         'Hospitalizations')
+         'Hospitalizations', 'Verschil in hospitalisaties (geen ic)')
     plot([model.ic_data, model_party.ic_data], ['Normal', 'Lockdown Parties'], 'ic_diff', 'Intensive Care')
     plot([model.infected_data, model_party.infected_data], ['Normal', 'Lockdown Parties'], 'infected_diff',
-         'Infections')
-    plot([model.dead_data, model_party.dead_data], ['Normal', 'Lockdown Parties'], 'death_diff', 'Dead')
+         'Infections', 'Verschil in aantal geïnfecteerden')
+    plot([model.dead_data, model_party.dead_data], ['Normal', 'Lockdown Parties'], 'death_diff', 'Dead', 'Verschil in aantal doden')
 
     plot([np.append(np.zeros(offset), cc.belgium_hospital), model_party.hospital_data + model_party.ic_data],
-         ["Hospital + IC (parties)", "Reference Hospital + IC"], 'party_hospital_ic_diff', 'Hospitalized')
+         ["Hospital + IC (parties)", "Reference Hospital + IC"], 'party_hospital_ic_diff', 'Hospitalized', title='Verschil in intensieve zorg')
 
     # Uncomment for plots
     model_no_lockdown = plot_model(contact_matrix, cc.belgium_count, infectious_rate=infectious_rate, days=days,
-                                   first_patient_age=45, cap_ic=False)
+                                   first_patient_age=45, cap_ic=False, name="model_no_lockdown", title='Model België zonder lockdown (∞ ic)')
 
-    plot([model_no_lockdown.infected_data, model_no_lockdown.hospital_data, model_no_lockdown.ic_data,
-          model_no_lockdown.dead_data], ["Infected", "Hospital", "IC", "Dead"],
-         name='model_no_lockdown', y_label='Amount')
+    # plot([model_no_lockdown.infected_data, model_no_lockdown.hospital_data, model_no_lockdown.ic_data,
+    #       model_no_lockdown.dead_data], ["Infected", "Hospital", "IC", "Dead"],
+    #      name='model_no_lockdown', y_label='Amount', title='Model België zonder lockdown')
 
     plot([model_no_lockdown.infected_data, model.infected_data], ["No lockdown", "Lockdown"],
-         name='Infected_lockdown_diff', y_label='Infections')
+         name='Infected_lockdown_diff', y_label='Infections', title='Verschil in aantal geïnfecteerden')
 
     plot([model_no_lockdown.hospital_data, model.hospital_data], ["No lockdown", "Lockdown"],
-         name='Hospital_lockdown_diff', y_label='Hospitalizations')
+         name='Hospital_lockdown_diff', y_label='Hospitalizations', title="Verschil in aantal geïnfecteerden")
 
     plot([model_no_lockdown.dead_data, model.dead_data], ["No lockdown", "Lockdown"],
-         name='Dead_lockdown_diff', y_label='Dead')
+         name='Dead_lockdown_diff', y_label='Dead', title="Verschil in aantal doden")
 
     plot([model_no_lockdown.ic_data, model.ic_data], ["No lockdown", "Lockdown"],
-         name='IC_lockdown_diff', y_label='Intensive Care')
+         name='IC_lockdown_diff', y_label='Intensive Care', title="Verschil in intensieve zorg")
 
     print('Dead people:', model_no_lockdown.dead_data[-1])
     print('Hospital people:', model_no_lockdown.hospital_total_data[-1])
@@ -289,27 +289,18 @@ def main():
 
     # Uncomment for plots (icu cap)
     model_no_lockdown_cap_ic = plot_model(contact_matrix, cc.belgium_count, infectious_rate=infectious_rate, days=days,
-                                   first_patient_age=45, cap_ic=True)
+                                   first_patient_age=45, cap_ic=True, name="model_no_lockdown_capic", title="Model België zonder lockdown (3000 ic bedden)")
 
-    plot([model_no_lockdown_cap_ic.infected_data, model_no_lockdown_cap_ic.hospital_data, model_no_lockdown_cap_ic.ic_data,
-          model_no_lockdown_cap_ic.dead_data, model_no_lockdown_cap_ic.ic_overflow_data], ["Infected", "Hospital", "IC", "Dead", "IC Overflow"],
-         name='model_no_lockdown-cap-ic', y_label='Amount')
+    # plot([model_no_lockdown_cap_ic.infected_data, model_no_lockdown_cap_ic.hospital_data, model_no_lockdown_cap_ic.ic_data,
+    #       model_no_lockdown_cap_ic.dead_data, model_no_lockdown_cap_ic.ic_overflow_data], ["Infected", "Hospital", "IC", "Dead", "IC Overflow"],
+    #      name='model_no_lockdown-cap-ic', y_label='Amount', title="")
 
-    # plot([model_no_lockdown.ic_data, model_no_lockdown.ic_overflow_data],
-    #      ["IC", "IC Overflow"],
-    #      name='model_no_lockdown-cap-ic', y_label='Amount')
-
-    plot([model_no_lockdown_cap_ic.infected_data, model_no_lockdown.infected_data], ["No lockdown (IC overflow)", "No lockdown"],
-         name='Infected_lockdown_diff-cap-ic', y_label='Infections')
-
-    plot([model_no_lockdown_cap_ic.hospital_data, model_no_lockdown.hospital_data], ["No lockdown (IC overflow)", "No lockdown"],
-         name='Hospital_lockdown_diff-cap-ic', y_label='Hospitalizations')
 
     plot([model_no_lockdown_cap_ic.dead_data, model_no_lockdown.dead_data], ["No lockdown (IC overflow)", "No lockdown"],
-         name='Dead_lockdown_diff-cap-ic', y_label='Dead')
+         name='Dead_lockdown_diff-cap-ic', y_label='Dead', title="Verschil in aantal doden")
 
     plot([model_no_lockdown_cap_ic.ic_data, model_no_lockdown.ic_data], ["No lockdown (IC overflow)", "No lockdown"],
-         name='IC_lockdown_diff-cap-ic', y_label='Intensive Care')
+         name='IC_lockdown_diff-cap-ic', y_label='Intensive Care', title="Verschil intensieve zorg")
 
     print('Dead people:', model_no_lockdown_cap_ic.dead_data[-1])
     print('Hospital people:', model_no_lockdown_cap_ic.hospital_total_data[-1])
@@ -317,26 +308,30 @@ def main():
 
     # gifs
     # animate([model.infected_data, model.hospital_data, model.ic_data, model.dead_data],
-    #         ["Infected", "Hospital", "IC", "Dead"], display=False, save=True, name='model', y_label='Amount')
-    #
-    # animate([model.infected_data, model.hospital_data, model.ic_data, model.dead_data],
-    #         ["Infected", "Hospital", "IC", "Dead"], display=False, save=True, name='model', y_label='Amount')
+    #         ["Infected", "Hospital", "IC", "Dead"], display=False, save=True, name='model', y_label='Amount', title='Model België in de tijd')
     #
     # animate([model_no_lockdown.infected_data, model_no_lockdown.hospital_data, model_no_lockdown.ic_data,
     #          model_no_lockdown.dead_data], ["Infected", "Hospital", "IC", "Dead"], display=False, save=True,
-    #         name='model_no_lockdown', y_label='Amount')
+    #         name='model_no_lockdown', y_label='Amount', title='Model België geen lockdown, in de tijd')
     #
     # animate([model_no_lockdown.infected_data, model.infected_data], ["No lockdown", "Lockdown"],
-    #         display=False, save=True, name='Infected_lockdown_diff', y_label='Infections')
+    #         display=False, save=True, name='Infected_lockdown_diff', y_label='Infections', title='Verschil aantal geïnfecteerden in de tijd')
     #
     # animate([model_no_lockdown.hospital_data, model.hospital_data], ["No lockdown", "Lockdown"],
-    #         display=False, save=True, name='Hospital_lockdown_diff', y_label='Hospitalizations')
+    #         display=False, save=True, name='Hospital_lockdown_diff', y_label='Hospitalizations',
+    #         title='Verschil aantal gehospitalizeerden in de tijd')
     #
     # animate([model_no_lockdown.dead_data, model.dead_data], ["No lockdown", "Lockdown"],
-    #         display=False, save=True, name='Dead_lockdown_diff', y_label='Dead')
+    #         display=False, save=True, name='Dead_lockdown_diff', y_label='Dead',
+    #         title='Verschil aantal doden in de tijd')
     #
     # animate([model_no_lockdown.ic_data, model.ic_data], ["No lockdown", "Lockdown"],
-    #         display=False, save=True, name='IC_lockdown_diff', y_label='Intensive Care')
+    #         display=False, save=True, name='IC_lockdown_diff', y_label='Intensive Care',
+    #         title='Verschil intensieve zorg in de tijd')
+
+    animate([model_no_lockdown_cap_ic.dead_data, model_no_lockdown.dead_data, model.dead_data],
+         ["No lockdown (IC overflow)", "No lockdown", "Lockdown"],
+         name='Dead_lockdown_diff-cap-ic', y_label='Dead', title="Verschil in aantal doden", save=True)
 
 
 if __name__ == "__main__":
