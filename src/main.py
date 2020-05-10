@@ -210,7 +210,7 @@ def plot_model(contact_matrix, susceptible, infectious_rate, days, reference_cas
 
 def main():
     infectious_rate = .05
-    days = 90
+    days = 120
 
     cc = CCMatrix('cc15.csv', 'eurostat_pop_age.csv', 'COVID19BE_HOSP.csv')
     contact_matrix = cc.cc_matrix
@@ -264,52 +264,56 @@ def main():
          ["Hospital + IC (parties)", "Reference Hospital + IC"], 'party_hospital_ic_diff', 'Hospitalized')
 
     # Uncomment for plots
-    # model_no_lockdown = plot_model(contact_matrix, cc.belgium_count, infectious_rate=infectious_rate, days=days,
-    #                                first_patient_age=45, cap_ic=False)
-    #
-    # plot([model_no_lockdown.infected_data, model_no_lockdown.hospital_data, model_no_lockdown.ic_data,
-    #       model_no_lockdown.dead_data], ["Infected", "Hospital", "IC", "Dead"],
-    #      name='model_no_lockdown', y_label='Amount')
-    #
-    # plot([model_no_lockdown.infected_data, model.infected_data], ["No lockdown", "Lockdown"],
-    #      name='Infected_lockdown_diff', y_label='Infections')
-    #
-    # plot([model_no_lockdown.hospital_data, model.hospital_data], ["No lockdown", "Lockdown"],
-    #      name='Hospital_lockdown_diff', y_label='Hospitalizations')
-    #
-    # plot([model_no_lockdown.dead_data, model.dead_data], ["No lockdown", "Lockdown"],
-    #      name='Dead_lockdown_diff', y_label='Dead')
-    #
-    # plot([model_no_lockdown.ic_data, model.ic_data], ["No lockdown", "Lockdown"],
-    #      name='IC_lockdown_diff', y_label='Intensive Care')
-    #
-    # print('Dead people:', model_no_lockdown.dead_data[-1])
-    # print('Hospital people:', model_no_lockdown.hospital_total_data[-1])
-    # print('IC people:', model_no_lockdown.ic_data[-1])
+    model_no_lockdown = plot_model(contact_matrix, cc.belgium_count, infectious_rate=infectious_rate, days=days,
+                                   first_patient_age=45, cap_ic=False)
+
+    plot([model_no_lockdown.infected_data, model_no_lockdown.hospital_data, model_no_lockdown.ic_data,
+          model_no_lockdown.dead_data], ["Infected", "Hospital", "IC", "Dead"],
+         name='model_no_lockdown', y_label='Amount')
+
+    plot([model_no_lockdown.infected_data, model.infected_data], ["No lockdown", "Lockdown"],
+         name='Infected_lockdown_diff', y_label='Infections')
+
+    plot([model_no_lockdown.hospital_data, model.hospital_data], ["No lockdown", "Lockdown"],
+         name='Hospital_lockdown_diff', y_label='Hospitalizations')
+
+    plot([model_no_lockdown.dead_data, model.dead_data], ["No lockdown", "Lockdown"],
+         name='Dead_lockdown_diff', y_label='Dead')
+
+    plot([model_no_lockdown.ic_data, model.ic_data], ["No lockdown", "Lockdown"],
+         name='IC_lockdown_diff', y_label='Intensive Care')
+
+    print('Dead people:', model_no_lockdown.dead_data[-1])
+    print('Hospital people:', model_no_lockdown.hospital_total_data[-1])
+    print('IC people:', model_no_lockdown.ic_data[-1])
 
     # Uncomment for plots (icu cap)
-    # model_no_lockdown = plot_model(contact_matrix, cc.belgium_count, infectious_rate=infectious_rate, days=days,
-    #                                first_patient_age=45, cap_ic=True)
-    #
-    # plot([model_no_lockdown.infected_data, model_no_lockdown.hospital_data, model_no_lockdown.ic_data,
-    #       model_no_lockdown.dead_data], ["Infected", "Hospital", "IC", "Dead"],
+    model_no_lockdown = plot_model(contact_matrix, cc.belgium_count, infectious_rate=infectious_rate, days=days,
+                                   first_patient_age=45, cap_ic=True)
+
+    plot([model_no_lockdown.infected_data, model_no_lockdown.hospital_data, model_no_lockdown.ic_data,
+          model_no_lockdown.dead_data, model_no_lockdown.ic_overflow_data], ["Infected", "Hospital", "IC", "Dead", "IC Overflow"],
+         name='model_no_lockdown-cap-ic', y_label='Amount')
+
+    # plot([model_no_lockdown.ic_data, model_no_lockdown.ic_overflow_data],
+    #      ["IC", "IC Overflow"],
     #      name='model_no_lockdown-cap-ic', y_label='Amount')
-    #
-    # plot([model_no_lockdown.infected_data, model.infected_data], ["No lockdown", "Lockdown"],
-    #      name='Infected_lockdown_diff-cap-ic', y_label='Infections')
-    #
-    # plot([model_no_lockdown.hospital_data, model.hospital_data], ["No lockdown", "Lockdown"],
-    #      name='Hospital_lockdown_diff-cap-ic', y_label='Hospitalizations')
-    #
-    # plot([model_no_lockdown.dead_data, model.dead_data], ["No lockdown", "Lockdown"],
-    #      name='Dead_lockdown_diff-cap-ic', y_label='Dead')
-    #
-    # plot([model_no_lockdown.ic_data, model.ic_data], ["No lockdown", "Lockdown"],
-    #      name='IC_lockdown_diff-cap-ic', y_label='Intensive Care')
-    #
-    # print('Dead people:', model_no_lockdown.dead_data[-1])
-    # print('Hospital people:', model_no_lockdown.hospital_total_data[-1])
-    # print('IC people:', model_no_lockdown.ic_data[-1])
+
+    plot([model_no_lockdown.infected_data, model.infected_data], ["No lockdown", "Lockdown"],
+         name='Infected_lockdown_diff-cap-ic', y_label='Infections')
+
+    plot([model_no_lockdown.hospital_data, model.hospital_data], ["No lockdown", "Lockdown"],
+         name='Hospital_lockdown_diff-cap-ic', y_label='Hospitalizations')
+
+    plot([model_no_lockdown.dead_data, model.dead_data], ["No lockdown", "Lockdown"],
+         name='Dead_lockdown_diff-cap-ic', y_label='Dead')
+
+    plot([model_no_lockdown.ic_data, model.ic_data], ["No lockdown", "Lockdown"],
+         name='IC_lockdown_diff-cap-ic', y_label='Intensive Care')
+
+    print('Dead people:', model_no_lockdown.dead_data[-1])
+    print('Hospital people:', model_no_lockdown.hospital_total_data[-1])
+    print('IC people:', model_no_lockdown.ic_data[-1])
 
     # gifs
     # animate([model.infected_data, model.hospital_data, model.ic_data, model.dead_data],

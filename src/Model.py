@@ -61,6 +61,7 @@ class Model:
         self.hospital_data = np.empty(0)
         self.hospital_total_data = np.empty(0)
         self.ic_data = np.empty(0)
+        self.ic_overflow_data = np.empty(0)
         self.dead_data = np.empty(0)
         self.case_data = np.empty(0)
         self.scenario = scenario
@@ -109,10 +110,11 @@ class Model:
         # ic recovery rate is lower when
         recoveries = ic * self.recovery_rate_ic
         if self.cap_ic:
-            ic_no_bed = np.maximum(ic - self.ic_capacity, np.zeros(86))
+            ic_alloc = self.allocate_ic(ic)
+            if ic_alloc is not None:
             # if icu capacity is exceeded, let people without a bed recover at a low rate
-            if ic_no_bed.sum() > 0:
-                recoveries = self.ic_capacity * self.recovery_rate_ic
+                ic_no_bed = np.maximum(ic - ic_alloc, np.zeros(86))
+                recoveries = ic_alloc * self.recovery_rate_ic
                 recoveries += ic_no_bed * self.recovery_rate_ic_no_bed
         self.recovered += recoveries
         self.hospital_ic -= recoveries
@@ -142,6 +144,20 @@ class Model:
         self.hospital = np.maximum(self.hospital, np.zeros(86))
         ...
 
+    def allocate_ic(self, ic):
+        if sum(ic) < 3000:
+            return None
+        ic_allocation = []
+        index = 0
+        while sum(ic_allocation) < 3000:
+            ic_allocation.append(ic[index])
+            index += 1
+        overflow = sum(ic_allocation) - 3000
+        ic_allocation[-1] -= overflow
+        while len(ic_allocation) < 86:
+            ic_allocation.append(0)
+        return np.array(ic_allocation)
+
     def die(self, hospitalized, ic):
         """
         From hospitalized and ic to Death
@@ -153,10 +169,11 @@ class Model:
         # icu dead
         dead = ic * self.death_rate
         if self.cap_ic:
-            ic_no_bed = np.maximum(ic - self.ic_capacity, np.zeros(86))
-            # if icu capacity is exceeded, let people without a bed die with at a high rate
-            if ic_no_bed.sum() > 0:
-                dead = self.ic_capacity * self.death_rate
+            ic_alloc = self.allocate_ic(ic)
+            if ic_alloc is not None:
+            # if icu capacity is exceeded, let people without a bed recover at a low rate
+                ic_no_bed = np.maximum(ic - ic_alloc, np.zeros(86))
+                dead = ic_alloc * self.death_rate
                 dead += ic_no_bed * self.ic_no_bed_death_rate
         self.dead += dead
         self.hospital_ic -= dead
@@ -205,7 +222,17 @@ class Model:
             self.exposed_data = np.append(self.exposed_data, self.exposed.sum())
             self.recovered_data = np.append(self.recovered_data, self.recovered.sum())
             self.hospital_data = np.append(self.hospital_data, self.hospital.sum())
-            self.ic_data = np.append(self.ic_data, self.hospital_ic.sum())
+            if self.cap_ic:
+                ic_alloc = self.allocate_ic(self.hospital_ic)
+                if ic_alloc is not None:
+                    # if icu capacity is exceeded, cap ic_data at ic_capacity, keep adding ic (inc. without bed) to ic_overflow_data
+                    self.ic_data = np.append(self.ic_data, ic_alloc.sum())
+                    self.ic_overflow_data = np.append(self.ic_overflow_data, self.hospital_ic.sum())
+                else:
+                    self.ic_data = np.append(self.ic_data, self.hospital_ic.sum())
+                    self.ic_overflow_data = np.append(self.ic_overflow_data, self.hospital_ic.sum())
+            else:
+                self.ic_data = np.append(self.ic_data, self.hospital_ic.sum())
             self.dead_data = np.append(self.dead_data, self.dead.sum())
             self.case_data = np.append(self.case_data, self.infected.sum() + self.recovered.sum() + self.hospital.sum()
                                        + self.hospital_ic.sum() + self.dead.sum())
