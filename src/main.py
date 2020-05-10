@@ -329,9 +329,9 @@ def main():
     #         display=False, save=True, name='IC_lockdown_diff', y_label='Intensive Care',
     #         title='Verschil intensieve zorg in de tijd')
 
-    animate([model_no_lockdown_cap_ic.dead_data, model_no_lockdown.dead_data, model.dead_data],
-         ["No lockdown (IC overflow)", "No lockdown", "Lockdown"],
-         name='Dead_lockdown_diff-cap-ic', y_label='Dead', title="Verschil in aantal doden", save=True)
+    # animate([model_no_lockdown_cap_ic.dead_data, model_no_lockdown.dead_data, model.dead_data],
+    #      ["No lockdown (IC overflow)", "No lockdown", "Lockdown"],
+    #      name='Dead_lockdown_diff-cap-ic', y_label='Dead', title="Verschil in aantal doden", save=True)
 
 
 if __name__ == "__main__":
