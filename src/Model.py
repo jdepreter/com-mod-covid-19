@@ -64,6 +64,10 @@ class Model:
         self.ic_overflow_data = np.empty(0)
         self.dead_data = np.empty(0)
         self.case_data = np.empty(0)
+        self.max_hospital = 0
+        self.max_ic = 0
+
+        # scenario
         self.scenario = scenario
 
     def infect(self, susceptible, infected, factor):
@@ -237,6 +241,8 @@ class Model:
             self.case_data = np.append(self.case_data, self.infected.sum() + self.recovered.sum() + self.hospital.sum()
                                        + self.hospital_ic.sum() + self.dead.sum())
             self.hospital_total_data = np.append(self.hospital_total_data, self.hospital_total.sum())
+            self.max_hospital = max(self.max_hospital, self.hospital.sum() + self.hospital_ic.sum())
+            self.max_ic = max(self.max_ic, self.hospital_ic.sum())
 
             # print(self.susceptible.sum() + infected.sum() + self.recovered.sum())
             # print(i)
