@@ -66,6 +66,7 @@ class Model:
         self.case_data = np.empty(0)
         self.max_hospital = 0
         self.max_ic = 0
+        self.max_ic_day = 0
 
         # scenario
         self.scenario = scenario
@@ -242,7 +243,9 @@ class Model:
                                        + self.hospital_ic.sum() + self.dead.sum())
             self.hospital_total_data = np.append(self.hospital_total_data, self.hospital_total.sum())
             self.max_hospital = max(self.max_hospital, self.hospital.sum() + self.hospital_ic.sum())
-            self.max_ic = max(self.max_ic, self.hospital_ic.sum())
+            if self.ic_data[len(self.ic_data) - 1] > self.max_ic:
+                self.max_ic = self.ic_data[len(self.ic_data) - 1]
+                self.max_ic_day = day
 
             # print(self.susceptible.sum() + infected.sum() + self.recovered.sum())
             # print(i)
