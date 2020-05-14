@@ -284,7 +284,7 @@ def main():
          name='Infected_lockdown_diff', y_label='Infections', title='Verschil in aantal geïnfecteerden')
 
     plot([model_no_lockdown.hospital_data, model.hospital_data], ["No lockdown", "Lockdown"],
-         name='Hospital_lockdown_diff', y_label='Hospitalizations', title="Verschil in aantal geïnfecteerden")
+         name='Hospital_lockdown_diff', y_label='Hospitalizations', title="Verschil in aantal hospitalisaties")
 
     plot([model_no_lockdown.dead_data, model.dead_data], ["No lockdown", "Lockdown"],
          name='Dead_lockdown_diff', y_label='Dead', title="Verschil in aantal doden")
@@ -321,7 +321,7 @@ def main():
 
     # Uncomment for plots (difference in age of first patient)
     model_lockdown_18 = plot_model(contact_matrix, cc.belgium_count, infectious_rate=infectious_rate, days=days,
-               measure_factor=factor, measure_day=measure_day, name="model_18", reference_hospital=cc.belgium_hospital,
+               measure_factor=factor, measure_day=measure_day, name="model_18",
                offset=offset, first_patient_age=18, title="Model België (leeftijd eerste patiënt 18)")
     print('First patient 18')
     print('Dead people:', model_lockdown_18.dead_data[-1])
@@ -336,7 +336,7 @@ def main():
     print('IC Max:', model.max_ic, 'on day', model.max_ic_day)
     print()
     model_lockdown_72 = plot_model(contact_matrix, cc.belgium_count, infectious_rate=infectious_rate, days=days,
-               measure_factor=factor, measure_day=measure_day, name="model_72", reference_hospital=cc.belgium_hospital,
+               measure_factor=factor, measure_day=measure_day, name="model_72",
                offset=offset, first_patient_age=72, title="Model België (leeftijd eerste patiënt 72)")
     print('First patient 72')
     print('Dead people:', model_lockdown_72.dead_data[-1])
@@ -349,7 +349,7 @@ def main():
          name='IC_age_diff', y_label='Intensive Care', title="Verschil in intensieve zorg")
     plot([model_lockdown_18.infected_data, model.infected_data, model_lockdown_72.infected_data],
          ["Leeftijd 18", "Leeftijd 45", "Leeftijd 72"],
-         name='Infected_age_diff', y_label='Intensive Care', title="Verschil in aantal geïnfecteerden")
+         name='Infected_age_diff', y_label='Infections', title="Verschil in aantal geïnfecteerden")
     # gifs
     # animate([model.infected_data, model.hospital_data, model.ic_data, model.dead_data],
     #         ["Infected", "Hospital", "IC", "Dead"], display=False, save=True, name='model', y_label='Amount', title='Model België in de tijd')
